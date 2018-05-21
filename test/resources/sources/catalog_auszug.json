@@ -1,0 +1,89 @@
+{
+  "namespace": "IBANDE1234567889102012",
+  "version": "0.1",
+  "sources": {
+    "kontoauszug": {
+      "source": {
+        "type": "csv",
+        "uri": "./test/resources/sources/auszug.csv",
+        "options": {
+          "encoding": "utf8",
+          "delimiter": ";",
+          "quotechar": "\"",
+          "skiprows": 8
+        }
+      },
+      "parser": {
+        "name": "JSONEvent"
+      },
+      "target": {
+        "type": "sqlite3",
+        "uri": "",
+        "options": {
+          "table": "test"
+        }
+      },
+      "fields": [
+        {
+          "name": "Buchungstag",
+          "alias": "first_name",
+          "data_type": "date"
+        },
+        {
+          "name": "Wertstellung",
+          "data_type": "date"
+        },
+        {
+          "name": "Umsatzart",
+          "data_type": "string"
+        },
+        {
+          "name": "Buchungsdetails",
+          "data_type": "string"
+        },
+        {
+          "name": "Auftraggeber",
+          "data_type": "string"
+        },
+        {
+          "name": "Empfänger",
+          "data_type": "string"
+        },
+        {
+          "name": "Betrag (€)",
+          "alias": "Betrag",
+          "data_type": "string",
+          "transformations": [
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": " €",
+                  "new": ""
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Saldo (€)",
+          "alias": "Saldo",
+          "data_type": "string",
+          "transformations": [
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": " €",
+                  "new": ""
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

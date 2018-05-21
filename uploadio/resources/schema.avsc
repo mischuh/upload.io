@@ -1,0 +1,47 @@
+{
+    "namespace": "upload.io",
+    "type": "record",
+    "name": "Event",
+    "fields": [
+        {
+            "name": "event_id",
+            "type": "string"
+        },
+        {
+            "name": "namespace",
+            "type": "string"
+        },
+        {
+            "name": "version",
+            "type": "string"
+        },
+        {
+            "name": "source",
+            "type": "string"
+        },
+        {
+            "name": "event_date",
+            "type": "long"
+        },
+        {
+            "name": "data",
+            "type": {
+                "type": "record",
+                "name": "data",
+                "fields": [
+                    {
+                        "name": "index",
+                        "type": "string"
+                    },
+                    {
+                        "name": "fields",
+                        "type": {
+                            "type": "map",
+                            "values": "string"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
