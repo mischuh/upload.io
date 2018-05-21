@@ -1,6 +1,0 @@
--e git+git://github.com/mischuh/p3common.git#egg=p3common>='0.2'
-colorlog
-requests
-pandas
-avro-python3
-psycopg2

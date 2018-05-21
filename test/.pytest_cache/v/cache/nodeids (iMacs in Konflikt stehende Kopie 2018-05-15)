@@ -1,5 +1,0 @@
-[
-  "sources/test_catalog.py::test_catalog",
-  "sources/test_source.py::test_csv_source_provider",
-  "sources/test_source.py::test_json_source_provider"
-]
