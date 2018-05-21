@@ -1,0 +1,75 @@
+{
+    "namespace": "upload.io",
+    "type": "record",
+    "name": "Event",
+    "fields": [
+        {
+            "name": "event_id",
+            "type": "string"
+        },
+        {
+            "name": "namespace",
+            "type": "string"
+        },
+        {
+            "name": "version",
+            "type": "string"
+        },
+        {
+            "name": "source",
+            "type": "string"
+        },
+        {
+            "name": "event_date",
+            "type": "long"
+        },
+        {
+            "name": "columns",
+            "type": {
+                "type": "array",
+                "items": "string"
+            }
+        },
+        {
+            "name": "data",
+            "type": {
+                "type": "record",
+                "name": "data",
+                "fields": [
+                    {
+                        "name": "index",
+                        "type": "string"
+                    },
+                    {
+                        "name": "fields",
+                        "doc": "Fields as defined in the catalog (after being transformed, optionally)",
+                        "type": {
+                            "type": "map",
+                            "values": {
+                                "type": "record",
+                                "name": "field",
+                                "fields": [
+                                    {
+                                        "name": "value",
+                                        "type": [
+                                            "null",
+                                            "string"
+                                        ]
+                                    },
+                                    {
+                                        "name": "datatype",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "mandatory",
+                                        "type": "boolean"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

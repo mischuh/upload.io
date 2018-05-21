@@ -1,0 +1,81 @@
+{
+    "namespace": "customer1",
+    "version": "0.2",
+    "sources": {
+        "customer": {
+            "source": {
+                "type": "csv",
+                "uri": "./test/resources/sources/test1.csv",
+                "options": {
+                    "encoding": "utf-8",
+                    "delimiter": ","
+                }
+            },
+            "parser": {
+                "name": "AvroEvent",
+                "schema": "./test/resources/schema_new.avsc"
+            },
+            "target": {
+                "type": "sqlite3",
+                "uri": "",
+                "options": {
+                    "table": "test"
+                }
+            },
+            "fields": [
+                {
+                    "name": "firstname",
+                    "alias": "first_name",
+                    "data_type": "string"
+                },
+                {
+                    "name": "lastname",
+                    "data_type": "string"
+                },
+                {
+                    "name": "street",
+                    "data_type": "string",
+                    "default": "Hauptstraße"
+                },
+                {
+                    "name": "city",
+                    "data_type": "string",
+                    "alias": "stadt",
+                    "transformations": [
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "uppercase",
+                                "operator": null
+                            },
+                            "order": 2
+                        },
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "replace",
+                                "operator": {
+                                    "old": "a",
+                                    "new": "AA"
+                                }
+                            },
+                            "order": 1
+                        },
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "lambda",
+                                "operator": "lambda x: x.lower()"
+                            },
+                            "order": 3
+                        }
+                    ]
+                },
+                {
+                    "name": "zipcode",
+                    "data_type": "string"
+                }
+            ]
+        }
+    }
+}

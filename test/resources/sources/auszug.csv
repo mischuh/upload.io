@@ -1,0 +1,11 @@
+Umsatzauskunft - gebuchte Umsätze
+Name;Deine Mudda
+BLZ;200100000
+Kontonummer;0123456789
+IBAN;DE1234567889102012
+Aktueller Kontostand;1000000,55 €
+Summe vorgemerkter Umsätze;+70,00 €
+
+"Buchungstag";"Wertstellung";"Umsatzart";"Buchungsdetails";"Auftraggeber";"Empfänger";"Betrag (€)";"Saldo (€)"
+"22.01.2018";"22.01.2018";"Übertrag";"Verwendungszweck Deine Mudda ";"Deine Mudda";"Deine Mudda";"100,00 €";"1000000,55 €"
+"18.01.2018";"18.01.2018";"Lastschrift";"Referenz Zahlbeleg 555444666 Mandat DE12345566";"Deine Mudda";"Telekom Worldwide";"-100,00 €";"1000100,55 €"

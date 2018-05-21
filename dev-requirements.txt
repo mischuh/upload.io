@@ -1,0 +1,11 @@
+-r test-requirements.txt
+autopep8
+pep8
+flake8 >= 3.5.0
+pycodestyle >=2.5
+pylint
+pip-tools
+pipdeptree
+jedi
+python-ctags
+mypy
