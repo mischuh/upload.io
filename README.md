@@ -1,23 +1,11 @@
-# Basic Idea
+# Upload.io
 
-* Resource
-    ** Wizard -> ```Catalog``` (which data do get from our customer)
-* Mapping (source -> target)
-    ** TODO: Describe Source itself (Connection, URL, Transformation (Skip Header, Lines...))
-    ** Receive new Data (```Source```), validate against Catalog
-    ** Mapping Catalog to internal DataSchema(s)
-    ** speichern
-* DataSchema
-    ** Avro Schema
-    ** Mapping to DataTypes (if possible, otherwise String as default)
-* Connector
-    ** How to handle ```Source``` of our customers
-    ** CSV, XLS, SAP, REST...
-    ** Upload, FTP, Pull, Push
-* Target
-    ** Where to store ```Source``` to
-    ** DB
-    ** Stream
-    ** File
+The basic idea is that you have a source and a target and a mapping in between
+and a catalog that holds all the information.
 
-// "encoding": "cp1252",
+You can find a simple exmaple here:
+    python3 sandbox.py
+
+First try to use static typing in python. Further a playground to glue different 
+components together (to name a few: load a csv, convert it into events, put it on queue and
+do some stream processing on it)...
