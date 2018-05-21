@@ -108,9 +108,10 @@ class SourceDefinition:
         return self.parser_config.get('name')
 
     @property
-    def schema(self) -> str:
-        validate.is_in_dict_keys('schema', self.parser_config)
-        src = JSONSource(uri=self.parser_config.get('schema')).load()
+    def schema(self) -> Dict[str, Any]:
+        validate.is_in_dict_keys('options', self.target_config)
+        validate.is_in_dict_keys('schema', self.target_config.get('options'))
+        src = JSONSource(uri=self.target_config.get('options').get('schema')).load()
         return src.data
 
     def __repr__(self) -> str:

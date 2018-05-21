@@ -1,12 +1,10 @@
 import abc
-from typing import Dict, List, Any, Tuple, Type, Optional
+from typing import Dict, List, Any
 
 from src.p3common.common import validators as validate
 from uploadio.sources.collection import Field, SourceDefinition
-from uploadio.sources.source import Source
-from .transformation import (Transformation, FilterTask, FilterTransformation, RuleTask,
+from uploadio.sources.transformation import (Transformation, FilterTask, FilterTransformation, RuleTask,
                              TransformationType, TransformationFactory)
-import pandas as pd
 
 
 class ConfigurationError(Exception):

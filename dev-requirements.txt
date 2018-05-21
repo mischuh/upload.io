@@ -2,7 +2,7 @@
 autopep8
 pep8
 flake8 >= 3.5.0
-pycodestyle >=2.5
+pycodestyle >= 2.0.0, < 2.4.0
 pylint
 pip-tools
 pipdeptree

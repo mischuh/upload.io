@@ -6,7 +6,7 @@ import avro
 from uploadio.sources import catalog as cat
 from uploadio.sources import source as src
 from uploadio.sources.parser import ParserFactory
-from uploadio.sources.target import LoggableTarget
+from uploadio.sources.target import LoggableTarget, AvroTarget
 
 
 def file(file_name: str) -> str:
@@ -59,12 +59,12 @@ def customer():
     collection = catalog.load('customer')
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
-    p = parser(source=csv.data, collection=collection,
-               schema=collection.schema)
+    p = parser(source=csv.data, collection=collection)
     # p = parser(source=csv.data, collection=customer)
     # data = p.parse(namespace=catalog.namespace, version=catalog.version,
     #                source='customer')
-    target = LoggableTarget(config=collection.target_config, parser=p)
+    # schema = json_source(file(collection.schema)).data
+    target = AvroTarget(config=collection.target_config, parser=p, schema=collection.schema)
     target.output(namespace=catalog.namespace,
                   version=catalog.version,
                   source='customer')
@@ -82,7 +82,7 @@ def http():
 
 
 def run():
-    kontoauszug()
+    customer()
 
 
 if __name__ == '__main__':

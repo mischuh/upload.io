@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
--e git+git://github.com/mischuh/p3common.git#egg=p3common>=0.2
+-e git+git://github.com/mischuh/p3common.git#egg=p3common
 avro-python3==1.8.2
 certifi==2018.1.18        # via requests
 chardet==3.0.4            # via requests
