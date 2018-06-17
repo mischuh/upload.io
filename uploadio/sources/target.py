@@ -7,6 +7,8 @@ from typing import Any, Dict
 import avro.datafile
 import avro.io
 import avro.schema
+from confluent_kafka import Producer
+
 
 from uploadio.sources.parser import Parser
 from uploadio.utils import Loggable, make_md5
@@ -41,6 +43,21 @@ class AvroTarget(Target):
                  schema: Dict[str, Any]) -> None:
         super().__init__(config, parser)
         self.schema = avro.schema.Parse(json.dumps(schema))
+        self.producer = Producer({
+            'bootstrap.servers': config['options']['servers']
+        })
+        print(self.producer)
+
+    def __delivery_report(self, err, msg):
+        """
+        Called once for each message produced to indicate delivery result.
+        Triggered by poll() or flush().
+        """
+        if err is not None:
+            print('Message delivery failed: {}'.format(err))
+        else:
+            print('Message delivered to {} [{}]'.format(
+                msg.topic(), msg.partition()))
 
     def _output(self,
                 namespace: str = '',
@@ -48,20 +65,38 @@ class AvroTarget(Target):
                 source: str = '',
                 **kwargs) -> None:
 
+        writer = avro.io.DatumWriter(self.schema)
         buf = io.BytesIO()
-        writer = avro.datafile.DataFileWriter(
-            buf, avro.io.DatumWriter(), self.schema)
+        # writer = avro.datafile.DataFileWriter(
+        #     buf, avro.io.DatumWriter(), self.schema)
+        encoder = avro.io.BinaryEncoder(buf)
         ts = int(time.time())
         for elem in self.parser.parse(**kwargs):
-            writer.append({
-                "event_id": make_md5(str(elem.get('fields'))),
-                "event_date": ts,
-                "namespace": namespace,
-                "version": version,
-                "source": source,
-                "columns": list(elem['fields'].keys()),
-                "data": elem
-            })
-        writer.flush()
+            # Trigger any available delivery report callbacks from
+            # previous produce() calls
+            self.producer.poll(0)
+            writer.write(
+                {
+                    "event_id": make_md5(str(elem.get('fields'))),
+                    "event_date": ts,
+                    "namespace": namespace,
+                    "version": version,
+                    "source": source,
+                    "columns": list(elem['fields'].keys()),
+                    "data": elem
+                },
+                encoder
+            )
+            data = buf.getvalue()
+            # Asynchronously produce a message, the delivery report callback
+            # will be triggered from poll() above, or flush() below, w
+            # hen the message has been successfully delivered or
+            # failed permanently.
+            self.producer.produce(
+                topic='foo',
+                value=data,
+                callback=self.__delivery_report
+            )
+        self.producer.flush()
         buf.seek(0)
         print(buf.read())

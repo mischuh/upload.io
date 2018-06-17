@@ -64,7 +64,8 @@ def customer():
     # data = p.parse(namespace=catalog.namespace, version=catalog.version,
     #                source='customer')
     # schema = json_source(file(collection.schema)).data
-    target = AvroTarget(config=collection.target_config, parser=p, schema=collection.schema)
+    target = AvroTarget(config=collection.target_config,
+                        parser=p, schema=collection.schema)
     target.output(namespace=catalog.namespace,
                   version=catalog.version,
                   source='customer')

@@ -9,6 +9,7 @@ avro-python3==1.8.2
 certifi==2018.1.18        # via requests
 chardet==3.0.4            # via requests
 colorlog==3.1.2
+confluent-kafka==0.11.4
 decorator==4.2.1
 idna==2.6                 # via requests
 numpy==1.14.0             # via pandas

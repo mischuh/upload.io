@@ -12,13 +12,14 @@
                 }
             },
             "parser": {
-                "name": "JSONEvent"              
+                "name": "JSONEvent"
             },
             "target": {
                 "type": "avro",
                 "uri": "./tmp/test.avro",
                 "options": {
-                    "schema": "./test/resources/schema_new.avsc"
+                    "schema": "./test/resources/schema_new.avsc",
+                    "servers": "localhost"
                 }
             },
             "fields": [
