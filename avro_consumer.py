@@ -4,11 +4,11 @@ from confluent_kafka.avro.serializer import SerializerError
 
 
 c = AvroConsumer({
-    'bootstrap.servers': 'mybroker,mybroker2',
+    'bootstrap.servers': 'localhost',
     'group.id': 'groupid',
     'schema.registry.url': 'http://127.0.0.1:8081'})
 
-c.subscribe(['my_topic'])
+c.subscribe(['foo'])
 
 while True:
     try:
