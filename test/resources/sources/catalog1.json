@@ -14,14 +14,17 @@
             "parser": {
                 "name": "JSONEvent"
             },
-            "target": {
-                "type": "avro",
-                "uri": "./tmp/test.avro",
-                "options": {
-                    "schema": "./test/resources/schema_new.avsc",
-                    "servers": "localhost:9092"
+            "target": 
+                {
+                    "type": "avro",
+                    "uri": "./tmp/test.avro",
+                    "options": {
+                        "schema": "./test/resources/schema_new.avsc",
+                        "servers": "localhost:9092",
+                        "topic": "customer"
+                    }
                 }
-            },
+            ,
             "fields": [
                 {
                     "name": "firstname",

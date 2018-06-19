@@ -45,8 +45,7 @@ class AvroTarget(Target):
         self.schema = avro.schema.Parse(json.dumps(schema))
         self.producer = Producer({
             'bootstrap.servers': config['options']['servers']
-        })
-        print(self.producer)
+        })        
 
     def __delivery_report(self, err, msg):
         """
@@ -54,10 +53,9 @@ class AvroTarget(Target):
         Triggered by poll() or flush().
         """
         if err is not None:
-            print('Message delivery failed: {}'.format(err))
+            print(f"Message delivery failed: {err}")
         else:
-            print('Message delivered to {} [{}]'.format(
-                msg.topic(), msg.partition()))
+            print(f"Message delivered to topic='{msg.topic()}', partition=[{msg.partition()}]")
 
     def _output(self,
                 namespace: str = '',
@@ -93,10 +91,9 @@ class AvroTarget(Target):
             # hen the message has been successfully delivered or
             # failed permanently.
             self.producer.produce(
-                topic='foo',
+                topic=self.config['options'].get('topic', '_default'),
                 value=data,
                 callback=self.__delivery_report
             )
         self.producer.flush()
-        buf.seek(0)
-        print(buf.read())
+        buf.seek(0)        

@@ -114,6 +114,12 @@ class SourceDefinition:
         src = JSONSource(uri=self.target_config.get('options').get('schema')).load()
         return src.data
 
+    def __get_target_config(self, type_name: str) -> Dict[str, Any]:
+        for conf in self.target_config:
+            if conf.type == type_name:
+                return conf
+        return {}
+
     def __repr__(self) -> str:
         return "SourceDefinition(name='{}', source_config='{}', " \
             "target_config={}, parser_config='{}', version='{}', fields={})".format(
