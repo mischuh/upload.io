@@ -18,15 +18,14 @@
       },
       "target": {
         "type": "sqlite3",
-        "uri": "",
+        "uri": "/tmp",
         "options": {
-          "table": "test"
+          "database": "test"
         }
       },
       "fields": [
         {
           "name": "Buchungstag",
-          "alias": "first_name",
           "data_type": "date"
         },
         {

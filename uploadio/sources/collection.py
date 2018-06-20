@@ -114,6 +114,10 @@ class SourceDefinition:
         src = JSONSource(uri=self.target_config.get('options').get('schema')).load()
         return src.data
 
+    @property
+    def columns(self) -> List[str]:
+        return [field.alias for field in self.fields.values()]
+
     def __repr__(self) -> str:
         return "SourceDefinition(name='{}', source_config='{}', " \
             "target_config={}, parser_config='{}', version='{}', fields={})".format(

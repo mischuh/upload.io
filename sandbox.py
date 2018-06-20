@@ -6,8 +6,8 @@ import avro
 from uploadio.sources import catalog as cat
 from uploadio.sources import source as src
 from uploadio.sources.parser import ParserFactory
-from uploadio.sources.target import LoggableTarget, AvroTarget
-
+from uploadio.sources.target import LoggableTarget, AvroTarget, DatabaseTarget
+from uploadio.common.db import SQLAlchemyDatabase
 
 def file(file_name: str) -> str:
     base_path = os.path.abspath(os.path.dirname(__file__))
@@ -37,6 +37,22 @@ def read_avro(data) -> None:
     reader.close()
 
 
+def create_table(collection) -> None:
+    db = SQLAlchemyDatabase(collection.target_config)
+    db.execute("drop table if exists {}".format(collection.name))
+    stmt = "create table if not exists {} ({})".format(
+        collection.name,
+        ', '.join(collection.columns)
+    )
+    db.execute(stmt)
+
+
+def select_table(collection) -> None:
+    db = SQLAlchemyDatabase(collection.target_config)
+    stmt = "select * from {}".format(collection.name)
+    return db.select(stmt)
+
+
 def kontoauszug():
     catalog = catalog_provider(json_source(
         file("sources/catalog_auszug.json")))
@@ -45,13 +61,12 @@ def kontoauszug():
     parser = ParserFactory.load(collection.parser)
     # p = parser(source=csv.data, collection=auszug, schema=auszug.schema)
     # schema = json_source(file(auszug.schema)).data
-    p = parser(source=csv.data, collection=collection)
-    # p = parser(source=csv.data, collection=auszug, schema=schema)
-    # data = p.parse(namespace=catalog.namespace, version=catalog.version,
-    #                source=catalog.list_sources()[0])
-    # read_avro(data)
-    target = LoggableTarget(config=collection.target_config, parser=p)
-    target.output()
+    p = parser(source=csv.data, collection=collection)    
+    LoggableTarget(config=collection.target_config, parser=p).output()
+    create_table(collection)
+    DatabaseTarget(config=collection.target_config, parser=p).output()
+    # data = select_table(collection)
+    # print(data)
 
 
 def customer():
@@ -60,6 +75,7 @@ def customer():
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
     p = parser(source=csv.data, collection=collection)
+
     # p = parser(source=csv.data, collection=customer)
     # data = p.parse(namespace=catalog.namespace, version=catalog.version,
     #                source='customer')
@@ -82,7 +98,7 @@ def http():
 
 
 def run():
-    customer()
+    kontoauszug()
 
 
 if __name__ == '__main__':

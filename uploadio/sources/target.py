@@ -2,19 +2,22 @@ import io
 import json
 import time
 from abc import abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import avro.datafile
 import avro.io
 import avro.schema
 
+from src.p3common.common import validators as validate
+
+from uploadio.common.db import DatabaseFactory
 from uploadio.sources.parser import Parser
 from uploadio.utils import Loggable, make_md5
 
 
 class Target(Loggable):
 
-    def __init__(self, config: Dict[str, Any], parser: Parser) -> None:
+    def __init__(self, config: Dict[str, Any], parser: Parser) -> None:        
         self.config = config
         self.parser = parser
 
@@ -33,6 +36,19 @@ class LoggableTarget(Target):
         for elem in self.parser.parse(**kwargs):
             print(elem)
             self.logger.info(elem)
+
+
+class DatabaseTarget(Target):
+
+    def __init__(self, config: Dict[str, Any], parser: Parser) -> None:
+        validate.is_in_dict_keys('type', config)
+
+        super().__init__(config, parser)
+        self.db = DatabaseFactory.load(config)       
+
+    def _output(self, **kwargs) -> None:
+        for elem in self.parser.parse(**kwargs):        
+            self.db.insert(**elem)    
 
 
 class AvroTarget(Target):
