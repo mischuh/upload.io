@@ -40,9 +40,13 @@ def read_avro(data) -> None:
 def create_table(collection) -> None:
     db = SQLAlchemyDatabase(collection.target_config)
     db.execute("drop table if exists {}".format(collection.name))
+    cols = ', '.join(collection.columns)
+    row_hash = collection.target_config.get('options', {}).get('row_hash', False)
+    if row_hash:
+        cols += ', row_hash' 
     stmt = "create table if not exists {} ({})".format(
-        collection.name,
-        ', '.join(collection.columns)
+        collection.target_config['connection'].get('table', 'default'),
+        cols
     )
     db.execute(stmt)
 
@@ -62,11 +66,11 @@ def kontoauszug():
     # p = parser(source=csv.data, collection=auszug, schema=auszug.schema)
     # schema = json_source(file(auszug.schema)).data
     p = parser(source=csv.data, collection=collection)    
-    LoggableTarget(config=collection.target_config, parser=p).output()
+    # LoggableTarget(config=collection.target_config, parser=p).output()
     create_table(collection)
     DatabaseTarget(config=collection.target_config, parser=p).output()
-    # data = select_table(collection)
-    # print(data)
+    data = select_table(collection)
+    print(data)
 
 
 def customer():

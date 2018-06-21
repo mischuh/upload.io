@@ -44,11 +44,25 @@ class DatabaseTarget(Target):
         validate.is_in_dict_keys('type', config)
 
         super().__init__(config, parser)
-        self.db = DatabaseFactory.load(config)       
-
+        self.db = DatabaseFactory.load(config)
+        self.row_hash = self.config.get('options', {}).get('row_hash', False)
+    
     def _output(self, **kwargs) -> None:
-        for elem in self.parser.parse(**kwargs):        
-            self.db.insert(**elem)    
+        for elem in self.parser.parse(**kwargs):
+            if self.row_hash:
+                elem = self._apply_row_hash(elem)
+                print(elem)
+            self.db.insert(**elem)
+
+    def _apply_row_hash(self, elem: Dict[str, Any]) -> Dict[str, Any]:
+        fields = elem.get('fields')
+        new_elem = {'row_hash': {
+            'value': make_md5(str(fields)),
+            'datatype': 'string', 
+            'mandatory': True
+        }}               
+        elem['fields'] = {**fields, **new_elem}        
+        return elem
 
 
 class AvroTarget(Target):

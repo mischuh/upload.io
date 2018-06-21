@@ -114,9 +114,12 @@ class SQLAlchemyDatabase(AbstractDatabase):
     def __init__(self, connection: Dict[str, Any]) -> None:
         super().__init__(connection)
         self.database = "{}/{}.db".format(
-            self.connection['uri'], 
-            self.connection['options']['database']
+            self.connection['connection']['uri'], 
+            self.connection['connection']['database']
         )
+        # TODO: Validate config https://pypi.org/project/schema/
+        self.table = self.connection['connection']['table']
+        self.options = self.connection.get('options', {})
 
     def get_sqlalchemy_conn_str(self) -> str:
         return 'sqlite:///{}'.format(self.database)
@@ -146,7 +149,8 @@ class SQLAlchemyDatabase(AbstractDatabase):
         columns =  data['fields'].keys()
         values = [data['fields'][col]['value'] for col in columns]   
 
-        exec_text = 'INSERT INTO kontoauszug ({}) values({})'.format(
+        exec_text = 'INSERT INTO {} ({}) values({})'.format(
+            self.table, 
             ', '.join(map(lambda x: "'" + x + "'", columns)), 
             ', '.join('?' * len(values))
         )
@@ -187,6 +191,7 @@ class DatabaseFactory:
     @classmethod
     def load(cls, config: Dict[str, Any]) -> AbstractDatabase:
         validate.is_in_dict_keys('type', config)
-        validate.is_in_dict_keys('uri', config)
+        validate.is_in_dict_keys('connection', config)
+        validate.is_in_dict_keys('uri', config.get('connection'))
         db = DatabaseFactory.__find(config.get('type'))
         return db(config)

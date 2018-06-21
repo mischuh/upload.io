@@ -109,9 +109,9 @@ class SourceDefinition:
 
     @property
     def schema(self) -> Dict[str, Any]:
-        validate.is_in_dict_keys('options', self.target_config)
-        validate.is_in_dict_keys('schema', self.target_config.get('options'))
-        src = JSONSource(uri=self.target_config.get('options').get('schema')).load()
+        validate.is_in_dict_keys('connection', self.target_config)
+        validate.is_in_dict_keys('schema', self.target_config.get('connection'))
+        src = JSONSource(uri=self.target_config.get('connection').get('schema')).load()
         return src.data
 
     @property

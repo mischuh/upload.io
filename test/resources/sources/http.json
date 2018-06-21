@@ -15,10 +15,14 @@
         "name": "StdOut"
       },
       "target": {
-        "type": "sqlite3",
-        "uri": "",
-        "options": {
+        "type": "sqlite3",        
+        "connection": {
+          "uri": "",
           "table": "test"
+        },
+        "options": {
+          "row_hash": true,
+          "upsert": true
         }
       },
       "fields": [

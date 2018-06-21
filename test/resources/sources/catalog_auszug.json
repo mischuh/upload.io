@@ -18,9 +18,14 @@
       },
       "target": {
         "type": "sqlite3",
-        "uri": "/tmp",
+        "connection": {
+          "uri": "/tmp",
+          "database": "test",
+          "table": "kontoauszug"          
+        },
         "options": {
-          "database": "test"
+          "row_hash": true,
+          "upsert": true
         }
       },
       "fields": [

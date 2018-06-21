@@ -16,9 +16,11 @@
             },
             "target": {
                 "type": "avro",
-                "uri": "./tmp/test.avro",
-                "options": {
+                "connection": {
+                    "uri": "./tmp/test.avro",
                     "schema": "./test/resources/schema_new.avsc"
+                },
+                "options": {
                 }
             },
             "fields": [
