@@ -3,7 +3,10 @@
 *Short term:*
 
 * Testtestestesttest
-    * schema module
+* Schema validation 
+    * [Schema](https://github.com/keleshev/schema)
+    * [Voluptuous](https://github.com/alecthomas/voluptuous)
+        * https://julien.danjou.info/python-schema-validation-voluptuous/   
 * ~~DB output API~~ 
     * sqlite is ok for the beginning...
     * postgres 
