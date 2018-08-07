@@ -7,7 +7,7 @@
         "type": "csv",
         "uri": "./test/resources/sources/auszug.csv",
         "options": {
-          "encoding": "utf8",
+          "encoding": "windows-1252",
           "delimiter": ";",
           "quotechar": "\"",
           "skiprows": 8
@@ -17,11 +17,16 @@
         "name": "JSONEvent"
       },
       "target": {
-        "type": "sqlite3",
+        "type": "postgres",
         "connection": {
-          "uri": "/tmp",
-          "database": "test",
-          "table": "kontoauszug"          
+          "host": "localhost",
+          "port": "5433",
+          "user": "postgres",
+          "password": "postgres",
+          "database": "postgres",
+          "schema": "public",
+          "table": "kontoauszug",
+          "ssl": "disable"
         },
         "options": {
           "row_hash": true,
@@ -31,32 +36,38 @@
       "fields": [
         {
           "name": "Buchungstag",
+          "alias": "booking_date",
           "data_type": "date"
         },
         {
           "name": "Wertstellung",
+          "alias": "value_date",
           "data_type": "date"
         },
         {
           "name": "Umsatzart",
+          "alias": "revenue_type",
           "data_type": "string"
         },
         {
           "name": "Buchungsdetails",
+          "alias": "booking_details",
           "data_type": "string"
         },
         {
           "name": "Auftraggeber",
+          "alias": "sender",
           "data_type": "string"
         },
         {
           "name": "Empfänger",
+          "alias": "recipient",
           "data_type": "string"
         },
         {
           "name": "Betrag (€)",
-          "alias": "Betrag",
-          "data_type": "string",
+          "alias": "amount",
+          "data_type": "double",
           "transformations": [
             {
               "type": "rule",
@@ -66,14 +77,38 @@
                   "old": " €",
                   "new": ""
                 }
-              }
+              },
+              "order": 1
+            },
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": ".",
+                  "new": ""
+                }
+              },
+              "order": 2
+            }
+          ,
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": ",",
+                  "new": "."
+                }
+              },
+              "order": 3
             }
           ]
         },
         {
           "name": "Saldo (€)",
-          "alias": "Saldo",
-          "data_type": "string",
+          "alias": "balance",
+          "data_type": "double",
           "transformations": [
             {
               "type": "rule",
@@ -83,7 +118,31 @@
                   "old": " €",
                   "new": ""
                 }
-              }
+              },
+              "order": 1
+            },
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": ".",
+                  "new": ""
+                }
+              },
+              "order": 2
+            }
+          ,
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": ",",
+                  "new": "."
+                }
+              },
+              "order": 3
             }
           ]
         }
