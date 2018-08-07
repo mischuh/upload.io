@@ -1,0 +1,152 @@
+{
+  "namespace": "IBANDE1234567889102012",
+  "version": "0.1",
+  "sources": {
+    "kontoauszug": {
+      "source": {
+        "type": "csv",
+        "uri": "./uploadio/resources/sources/auszug.csv",
+        "options": {
+          "encoding": "windows-1252",
+          "delimiter": ";",
+          "quotechar": "\"",
+          "skiprows": 8
+        }
+      },
+      "parser": {
+        "name": "JSONEvent"
+      },
+      "target": {
+        "type": "postgres",
+        "connection": {
+          "host": "localhost",
+          "port": "5433",
+          "user": "postgres",
+          "password": "postgres",
+          "database": "postgres",
+          "schema": "public",
+          "table": "kontoauszug",
+          "ssl": "disable"
+        },
+        "options": {
+          "row_hash": true,
+          "upsert": true
+        }
+      },
+      "fields": [
+        {
+          "name": "Buchungstag",
+          "alias": "booking_date",
+          "data_type": "date"
+        },
+        {
+          "name": "Wertstellung",
+          "alias": "value_date",
+          "data_type": "date"
+        },
+        {
+          "name": "Umsatzart",
+          "alias": "revenue_type",
+          "data_type": "string"
+        },
+        {
+          "name": "Buchungsdetails",
+          "alias": "booking_details",
+          "data_type": "string"
+        },
+        {
+          "name": "Auftraggeber",
+          "alias": "sender",
+          "data_type": "string"
+        },
+        {
+          "name": "Empfänger",
+          "alias": "recipient",
+          "data_type": "string"
+        },
+        {
+          "name": "Betrag (€)",
+          "alias": "amount",
+          "data_type": "double",
+          "transformations": [
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": " €",
+                  "new": ""
+                }
+              },
+              "order": 1
+            },
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": ".",
+                  "new": ""
+                }
+              },
+              "order": 2
+            }
+          ,
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": ",",
+                  "new": "."
+                }
+              },
+              "order": 3
+            }
+          ]
+        },
+        {
+          "name": "Saldo (€)",
+          "alias": "balance",
+          "data_type": "double",
+          "transformations": [
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": " €",
+                  "new": ""
+                }
+              },
+              "order": 1
+            },
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": ".",
+                  "new": ""
+                }
+              },
+              "order": 2
+            }
+          ,
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": ",",
+                  "new": "."
+                }
+              },
+              "order": 3
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -3,6 +3,7 @@
 *Short term:*
 
 * Testtestestesttest
+* Make _URI_ in source optional, so we must inject a file if this item is missing in config 
 * Schema validation 
     * [Schema](https://github.com/keleshev/schema)
     * [Voluptuous](https://github.com/alecthomas/voluptuous)
@@ -14,7 +15,9 @@
 
 *Medium term:*
 
-* Scheduler for repeating tasks
+* ~~Scheduler for repeating tasks~~
+    * [Watchdog](https://pypi.org/project/watchdog/)
+        * http://brunorocha.org/python/watching-a-directory-for-file-changes-with-python.html
 * Docker infrastucture to launch a proper setting
 
 *Long term:*
