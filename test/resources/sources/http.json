@@ -12,13 +12,14 @@
         }
       },
       "parser": {
-        "name": "StdOut"
+        "name": "JSONEvent"
       },
       "target": {
         "type": "sqlite3",        
         "connection": {
-          "uri": "",
-          "table": "test"
+          "uri": "/tmp",
+          "database": "test",
+          "table": "SalesJan2009"
         },
         "options": {
           "row_hash": true,
