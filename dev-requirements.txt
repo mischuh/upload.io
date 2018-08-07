@@ -9,4 +9,3 @@ pipdeptree
 jedi
 python-ctags
 mypy
-sqlite3

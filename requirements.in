@@ -1,6 +1,6 @@
 -e git+git://github.com/mischuh/p3common.git#egg=p3common
 colorlog
 requests
-pandas
+pandas >= 0.23.4
 avro-python3
 psycopg2
