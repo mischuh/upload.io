@@ -2,12 +2,15 @@ import io
 import os
 
 import avro
+from pandas import DataFrame
 
+from uploadio.common.db import DatabaseFactory
+from uploadio.common.translator import Datatype, PostgresTranslator
 from uploadio.sources import catalog as cat
 from uploadio.sources import source as src
 from uploadio.sources.parser import ParserFactory
-from uploadio.sources.target import LoggableTarget, AvroTarget, DatabaseTarget
-from uploadio.common.db import SQLAlchemyDatabase
+from uploadio.sources.target import AvroTarget, DatabaseTarget
+
 
 def file(file_name: str) -> str:
     base_path = os.path.abspath(os.path.dirname(__file__))
@@ -38,21 +41,28 @@ def read_avro(data) -> None:
 
 
 def create_table(collection) -> None:
-    db = SQLAlchemyDatabase(collection.target_config)
-    db.execute("drop table if exists {}".format(collection.name))
-    cols = ', '.join(collection.columns)
+    db = DatabaseFactory.load(collection.target_config)
+    db.execute(
+        statement="drop table if exists {}".format(collection.name),
+        modify=True
+    )
+    col_types = ['"{}" {}'.format(
+            f.alias,
+            PostgresTranslator(Datatype(f.data_type)).dialect_datatype()
+        ) for f in collection.fields.values()]
+    cols = ', '.join(col_types)
     row_hash = collection.target_config.get('options', {}).get('row_hash', False)
     if row_hash:
-        cols += ', row_hash' 
-    stmt = "create table if not exists {} ({})".format(
+        cols += ', row_hash text PRIMARY KEY'
+    stmt = "create table if not exists {} ({} )".format(
         collection.target_config['connection'].get('table', 'default'),
         cols
     )
-    db.execute(stmt)
+    db.execute(statement=stmt, modify=True)
 
 
-def select_table(collection) -> None:
-    db = SQLAlchemyDatabase(collection.target_config)
+def select_table(collection) -> DataFrame:
+    db = DatabaseFactory.load(collection.target_config)
     stmt = "select * from {}".format(collection.name)
     return db.select(stmt)
 
@@ -84,6 +94,10 @@ def customer():
     # data = p.parse(namespace=catalog.namespace, version=catalog.version,
     #                source='customer')
     # schema = json_source(file(collection.schema)).data
+    # create_table(collection)
+    # DatabaseTarget(config=collection.target_config, parser=p).output()
+    # data = select_table(collection)
+    # print(data.head())
     target = AvroTarget(config=collection.target_config, parser=p, schema=collection.schema)
     target.output(namespace=catalog.namespace,
                   version=catalog.version,
@@ -97,13 +111,13 @@ def http():
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
     p = parser(source=csv.data, collection=collection)
-    target = LoggableTarget(config=collection.target_config, parser=p)
-    target.output()
-
-
-def run():
-    kontoauszug()
+    # target = LoggableTarget(config=collection.target_config, parser=p)
+    # target.output()
+    create_table(collection)
+    DatabaseTarget(config=collection.target_config, parser=p).output()
+    data = select_table(collection)
+    print(data.head())
 
 
 if __name__ == '__main__':
-    run()
+    http()
