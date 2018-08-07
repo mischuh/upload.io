@@ -3,7 +3,8 @@
 *Short term:*
 
 * Testtestestesttest
-* DB output API (sqlite is ok for the beginning...)
+** schema module
+~~* DB output API (sqlite is ok for the beginning...)~~
 * DictionarySource, load a bunch of files
 
 *Medium term:*
