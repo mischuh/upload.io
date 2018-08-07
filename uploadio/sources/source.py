@@ -9,23 +9,33 @@ from uploadio.utils import Loggable
 
 class Source(Loggable):
     """ Provides data for a specific source """
-
     def __init__(self, uri: str, **options) -> None:
         self.uri = uri
         self.options: Dict[str, Any] = {} if not options else options
         self.data: Union[Dict[str, Any], pd.DataFrame] = None
 
-    def load(self, *args, **kwargs) -> Any:
-        return self._load(*args, **kwargs)
+    def load(self, uri: str=None, *args, **kwargs) -> Any:
+        """
+        :param uri: resource to load
+            None: use URI defined in configuration
+            Else: explicitly use different URI with options defined in config
+        :param args: additional args
+        :param kwargs: options
+        :return: Any
+        """
+        if uri:
+            validate.str_not_empty(uri)
+            self.uri = uri
+        return self._load(uri, *args, **kwargs)
 
     @abstractmethod
-    def _load(self, *args, **kwargs) -> Any:
+    def _load(self, uri: str=None, *args, **kwargs) -> Any:
         raise NotImplementedError()
 
 
 class DirectorySource(Source):
 
-    def _load(self, *args, **kwargs):
+    def _load(self, uri: str=None, *args, **kwargs):
         regex = self.options.get('regex', '*')
         print(regex)
         return self
@@ -33,7 +43,7 @@ class DirectorySource(Source):
 
 class CSVSource(Source):
 
-    def _load(self, *args, **kwargs) -> Source:
+    def _load(self, uri: str=None, *args, **kwargs) -> Source:
         self.options.update(**kwargs)
         self.data = pd.read_csv(filepath_or_buffer=self.uri, **self.options)
         return self
@@ -41,7 +51,7 @@ class CSVSource(Source):
 
 class JSONSource(Source):
     # TODO: Validate Schema...
-    def _load(self, *args, df: bool=False, **kwargs) -> Source:
+    def _load(self, uri: str=None, *args, df: bool=False, **kwargs) -> Source:
         import json
         with open(self.uri, "r") as json_file:
             data = json.load(json_file)
@@ -55,7 +65,7 @@ class HTTPSource(Source):
     """
     Downloads a file from a HTTP Uri and stores it on the filesystem
     """
-    def _load(self, *args, df: bool=False, **kwargs) -> Source:
+    def _load(self, uri: str=None,  *args, df: bool=False, **kwargs) -> Source:
         validate.is_in_dict_keys('filename', self.options)
         validate.is_in_dict_keys('resolver', self.options)
 
@@ -73,7 +83,7 @@ class HTTPSource(Source):
 
 class StreamSource(Source):
 
-    def _load(self, *args, **kwargs) -> Source:
+    def _load(self, uri: str=None, *args, **kwargs) -> Source:
         pass
 
 

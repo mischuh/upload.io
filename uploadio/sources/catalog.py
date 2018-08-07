@@ -66,7 +66,7 @@ class JsonCatalogProvider(CatalogProvider):
         self.sources: dict = catalog.get('sources')
 
     def load(self, source_name: str) -> SourceDefinition:
-        src = JsonCatalogProvider.__get_key_or_die(self.sources, source_name)
+        src = JsonCatalogProvider.__get_key_or_die(self.sources,source_name)
         source_config = JsonCatalogProvider.__get_key_or_die(src, 'source')
         target_config = JsonCatalogProvider.__get_key_or_die(src, 'target')
         parser_config = JsonCatalogProvider.__get_key_or_die(src, 'parser')
@@ -79,6 +79,18 @@ class JsonCatalogProvider(CatalogProvider):
             version=self.version,
             fields=fields
         )
+
+    # def __eval_source_name(self, source_name: str) -> Dict:
+    #     if not source_name:
+    #         # we don´t know the source name
+    #         # so we take the first one
+    #         # otherwise an exception will be raised
+    #         return list(self.sources)[0]
+    #     else:
+    #         return JsonCatalogProvider.__get_key_or_die(
+    #             self.sources,
+    #             source_name
+    #         )
 
     @staticmethod
     def __retrieve_fields(source: Dict) -> Dict[str, Field]:

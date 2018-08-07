@@ -1,11 +1,11 @@
 from abc import abstractmethod
-from typing import Dict, Type, Any
+from typing import Dict, Type, Any, List
 
 import pandas as pd
 
 from src.p3common.common import validators as validate
 from src.p3common.common.validators.utils import ValidationException
-from uploadio.sources.collection import SourceDefinition
+from uploadio.sources.collection import SourceDefinition, Field
 from uploadio.utils import Loggable
 
 
@@ -65,7 +65,7 @@ class SimpleParser(Parser):
 
 class JSONEventParser(Parser):
 
-    def parse(self):
+    def parse(self) -> Dict[str, Dict[str, Dict[str, Any]]]:
         """
         Does the actual work...
         """
