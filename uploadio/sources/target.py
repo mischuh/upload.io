@@ -50,18 +50,20 @@ class DatabaseTarget(Target):
     def _output(self, **kwargs) -> None:
         for elem in self.parser.parse(**kwargs):
             if self.row_hash:
-                elem = self._apply_row_hash(elem)
-                print(elem)
-            self.db.insert(**elem)
+                elem = DatabaseTarget._apply_row_hash(elem)
+                # print(elem)
+            # TODO: make conflict_target configurable?
+            self.db.insert(conflict_target='row_hash', **elem)
 
-    def _apply_row_hash(self, elem: Dict[str, Any]) -> Dict[str, Any]:
+    @staticmethod
+    def _apply_row_hash(elem: Dict[str, Any]) -> Dict[str, Any]:
         fields = elem.get('fields')
         new_elem = {'row_hash': {
             'value': make_md5(str(fields)),
             'datatype': 'string', 
             'mandatory': True
-        }}               
-        elem['fields'] = {**fields, **new_elem}        
+        }}
+        elem['fields'] = {**fields, **new_elem}
         return elem
 
 

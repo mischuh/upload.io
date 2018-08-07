@@ -40,7 +40,7 @@ class CSVSource(Source):
 
 
 class JSONSource(Source):
-
+    # TODO: Validate Schema...
     def _load(self, *args, df: bool=False, **kwargs) -> Source:
         import json
         with open(self.uri, "r") as json_file:
