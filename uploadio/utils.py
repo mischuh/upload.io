@@ -38,7 +38,8 @@ def make_list(item_or_items):
         return item_or_items
     if isinstance(item_or_items, dict):
         return [item_or_items]
-    if hasattr(item_or_items, '__iter__') and not isinstance(item_or_items, str):
+    if hasattr(item_or_items, '__iter__') \
+            and not isinstance(item_or_items, str):
         return list(item_or_items)
     return [item_or_items]
 
@@ -54,15 +55,19 @@ def get_field_mro(cls, field_name):
 
 def auto_str(__repr__=False):
     """
-    Use this decorator to auto implement __str__() and optionally __repr__() methods on classes.
+    Use this decorator to auto implement __str__()
+    and optionally __repr__() methods on classes.
     Args:
-        __repr__ (bool): If set to true, the decorator will auto-implement the __repr__() method as well.
+        __repr__ (bool): If set to true, the decorator will auto-implement
+        the __repr__() method as well.
     Returns:
         callable: Decorating function.
     Note:
-        There are known issues with self referencing (self.s = self). Recursion will be identified by the python
+        There are known issues with self referencing (self.s = self).
+        Recursion will be identified by the python
         interpreter and will do no harm, but it will actually not work.
-        A eval(class.__repr__()) will obviously not work, when there are attributes that are not part of the
+        A eval(class.__repr__()) will obviously not work, when there are
+        attributes that are not part of the
         __init__'s arguments.
     Example:
         >>> @auto_str(__repr__=True)
@@ -86,7 +91,8 @@ def auto_str(__repr__=False):
                 name=name,
                 value=value.__repr__()
             ) for name, value in vars(self).items()
-                if name not in get_field_mro(self.__class__, '__auto_str_ignore__')]
+                if name not in get_field_mro(self.__class__,
+                                             '__auto_str_ignore__')]
             return "{clazz}({items})".format(
                 clazz=str(type(self).__name__),
                 items=', '.join(items)
@@ -102,7 +108,8 @@ def auto_str(__repr__=False):
 
 class Loggable:
     """
-    Adds a logger property to the class to provide easy access to a configured logging instance to use.
+    Adds a logger property to the class to provide easy access to a
+    configured logging instance to use.
     Example:
         >>> class NeedsLogger(Loggable):
         ...     def do(self, message):

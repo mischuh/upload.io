@@ -1,7 +1,9 @@
+import argparse
 import os
 import time
-import sys
 import logging
+
+from typing import Tuple
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
@@ -10,10 +12,15 @@ from uploadio.sources.parser import ParserFactory
 from uploadio.sources.target import DatabaseTarget
 from uploadio.sources import source as src
 
-log = logging.getLogger(__name__)
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)-15s - [%(levelname)-10s] %(message)s"
+)
+log = logging.getLogger(os.path.basename(__file__))
 
 
-class MyHandler(PatternMatchingEventHandler):
+class PipelineHandler(PatternMatchingEventHandler):
     patterns = ["*.csv"]
 
     def __init__(self, catalog: str, source_name: str) -> None:
@@ -21,6 +28,15 @@ class MyHandler(PatternMatchingEventHandler):
         self.catalog = catalog
         self.source_name = source_name
 
+    @staticmethod
+    def file(file_name: str) -> str:
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        return os.path.join(
+            base_path,
+            f"resources/{file_name}"
+        )
+
+    @staticmethod
     def json_source(path: str) -> src.Source:
         return src.JSONSource(uri=path).load()
 
@@ -34,42 +50,42 @@ class MyHandler(PatternMatchingEventHandler):
             path/to/observed/file
         """
         # the file will be processed there
-        print("Loading catalog '{}".format(self.catalog))
-        catalog = catalog_provider(self.json_source(self.catalog))
+        cat_file = PipelineHandler.json_source(self.catalog)
+        log.info("Loading catalog {}".format(cat_file.uri))
+        catalog = catalog_provider(cat_file)
         collection = catalog.load(self.source_name)
-        print("Processing Source: {}".format(event.src_path))
+        log.info("Processing Source: {}".format(event.src_path))
         csv = collection.source.load(uri=event.src_path)
         parser = ParserFactory.load(collection.parser)
         p = parser(source=csv.data, collection=collection)
-        print("Inserting values into table '{}'".format(
+        log.info("Inserting values into table '{}'".format(
             collection.target_config['connection'].get('table', 'default')
         ))
         DatabaseTarget(config=collection.target_config, parser=p).output()
-        print("Done...")
+        log.info("Done...")
 
     def on_modified(self, event) -> None:
-        print("on_modified() event occured")
+        log.info("on_modified() event occured")
         self.process(event)
 
     def on_created(self, event) -> None:
-        print("on_create() event occured")
+        log.info("on_create() event occured")
         self.process(event)
 
     def on_moved(self, event) -> None:
-        print("on_moved() event occured")
+        log.info("on_moved() event occured")
         self.process(event)
 
 
-if __name__ == '__main__':
-    args = sys.argv[1:]
+def run(path: str, catalog: str, source_name: str) -> None:
     observer = Observer()
-    handler = MyHandler(
-        catalog='/Users/mschuh/src/private/upload.io/resources/catalog_auszug.json',
-        source_name='kontoauszug'
+    handler = PipelineHandler(
+        catalog=catalog,
+        source_name=source_name
     )
-    observer.schedule(handler, path=args[0] if args else '.')
+    observer.schedule(handler, path)
     observer.start()
-    print("Watchdog started...")
+    log.info("Watchdog started...")
 
     try:
         while True:
@@ -78,3 +94,33 @@ if __name__ == '__main__':
         observer.stop()
 
     observer.join()
+
+
+def parse_arguments() -> Tuple[str, str, str]:
+    parser = argparse.ArgumentParser(description="upload.io runner")
+    parser.add_argument('-p',
+                        '--path',
+                        dest='path',
+                        help='path to observe for changes',
+                        required=True
+                        )
+    parser.add_argument('-c',
+                        '--catalog',
+                        dest='catalog',
+                        help='Path to a catalog file',
+                        required=True
+                        )
+    parser.add_argument('-s',
+                        '--source',
+                        dest='source',
+                        help='source name within given catalog',
+                        required=True
+                        )
+
+    args = parser.parse_args()
+    return args.path, args.catalog, args.source
+
+
+if __name__ == '__main__':
+    path, catalog, source_name = parse_arguments()
+    run(path, catalog, source_name)

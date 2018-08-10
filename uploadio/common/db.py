@@ -1,6 +1,6 @@
 import sqlite3
 from abc import abstractmethod
-from typing import Any, Dict, List, Type, Optional, Iterable
+from typing import Any, Dict, Iterable, Optional, Type
 
 import psycopg2
 from pandas import DataFrame
@@ -22,7 +22,8 @@ class AbstractDatabase(Loggable):
         return self._execute(statement, **options)
 
     @abstractmethod
-    def _execute(self, statement: str, modify: bool=False, **options) -> Optional[DataFrame]:
+    def _execute(self, statement: str,
+                 modify: bool=False, **options) -> Optional[DataFrame]:
         raise NotImplementedError()
 
     @abstractmethod

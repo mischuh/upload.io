@@ -1,10 +1,12 @@
 import abc
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from src.p3common.common import validators as validate
 from uploadio.sources.collection import Field, SourceDefinition
-from uploadio.sources.transformation import (Transformation, FilterTask, FilterTransformation, RuleTask,
-                             TransformationType, TransformationFactory)
+from uploadio.sources.transformation import (FilterTask, FilterTransformation,
+                                             RuleTask, Transformation,
+                                             TransformationFactory,
+                                             TransformationType)
 
 
 class ConfigurationError(Exception):
@@ -47,7 +49,9 @@ class CatalogProvider:
         """
         raise NotImplementedError("You have to implement this.")
 
-    def parse_transformations(self, transformations: List[Transformation]) -> None:
+    def parse_transformations(
+            self,
+            transformations: List[Transformation]) -> None:
         for elem in transformations:
             print(elem)
 

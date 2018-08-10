@@ -62,9 +62,10 @@ class FilterTask(Task):
         raise NotImplementedError()
 
     def __repr__(self) -> str:
-        return "FilterTask(attribute='{}', operator='{}', expression='{}')".format(
-            self.attribute, self.operator, self.expression
-        )
+        return "FilterTask(attribute='{}', operator='{}', " \
+            "expression='{}')".format(self.attribute,
+                                      self.operator,
+                                      self.expression)
 
 
 class TransformationType(Enum):
@@ -80,7 +81,11 @@ class Transformation:
     filter or anything you can imagine
     """
 
-    def __init__(self, type: TransformationType, task: Task, order: Optional[int]) -> None:
+    def __init__(
+            self,
+            type: TransformationType,
+            task: Task,
+            order: Optional[int]) -> None:
         self.type = type
         self.task = task
         self.order = order
@@ -159,7 +164,12 @@ class FilterTransformation(Transformation):
     fit a specifit criteria.
     """
 
-    def __init__(self, task: FilterTask, order: Optional[int], *args, **kwargs) -> None:
+    def __init__(
+            self,
+            task: FilterTask,
+            order: Optional[int],
+            *args,
+            **kwargs) -> None:
         super().__init__(TransformationType.FILTER, task, order)
         self.args = args
         self.kwargs = kwargs

@@ -110,8 +110,12 @@ class SourceDefinition:
     @property
     def schema(self) -> Dict[str, Any]:
         validate.is_in_dict_keys('connection', self.target_config)
-        validate.is_in_dict_keys('schema', self.target_config.get('connection'))
-        src = JSONSource(uri=self.target_config.get('connection').get('schema')).load()
+        validate.is_in_dict_keys(
+            'schema', self.target_config.get('connection')
+        )
+        src = JSONSource(
+            uri=self.target_config.get('connection').get('schema')
+        ).load()
         return src.data
 
     @property
@@ -119,8 +123,8 @@ class SourceDefinition:
         return [field.alias for field in self.fields.values()]
 
     def __repr__(self) -> str:
-        return "SourceDefinition(name='{}', source_config='{}', " \
-            "target_config={}, parser_config='{}', version='{}', fields={})".format(
-                self.name, self.source_config, self.target_config,
-                self.parser_config, self.version, self.fields
-            )
+        return "SourceDefinition(name='{}', source_config={}, " \
+               "target_config={}, parser_config={}, version='{}', " \
+                "fields={})".format(self.name, self.source_config,
+                                    self.target_config, self.parser_config,
+                                    self.version, self.fields)

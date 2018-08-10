@@ -4,7 +4,10 @@ from src.p3common.common import validators as validate
 
 
 def group_by(aggregation_func, list_to_group):
-    """Applies the aggregation_func to every list element to determine a grouping key"""
+    """
+    Applies the aggregation_func to every list
+    element to determine a grouping key
+    """
     validate.is_instance_of(list_to_group, list)
     validate.is_function(aggregation_func)
 
@@ -57,7 +60,8 @@ def merge_dicts(dict1, dict2):
 def safe_list_get(l, idx=0, default=None):
     """
     Helper method to extract one element safely out of a list.
-    When index is out of bounds no exception is thrown, instead the specified default value is returned.
+    When index is out of bounds no exception is thrown,
+    instead the specified default value is returned.
     :param l: The list
     :param idx: Index of the element
     :param default: If the element does not exists return a default value
@@ -107,7 +111,8 @@ def make_list(item_or_items):
         return None
     if isinstance(item_or_items, list):
         return item_or_items
-    if hasattr(item_or_items, '__iter__') and not isinstance(item_or_items, str):
+    if hasattr(item_or_items, '__iter__') \
+            and not isinstance(item_or_items, str):
         return list(item_or_items)
 
     return [item_or_items]

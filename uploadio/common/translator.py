@@ -5,7 +5,8 @@ from src.p3common.common import validators as validate
 
 class Dialect(object):
     """
-    Enum class for translator dialects (e.g. Postgres, MySQL, ... or even non-database stuff)
+    Enum class for translator dialects
+    (e.g. Postgres, MySQL, ... or even non-database stuff)
     """
     POSTGRES = 1,
     STANDARD = 99
@@ -53,7 +54,8 @@ class Datatype(object):
 
     def translate(self, dialect=None):
         """
-        Using the specified dialect a translator is resolved to translate this datatype to a target datatype.
+        Using the specified dialect a translator is resolved to
+        translate this datatype to a target datatype.
         Example:
             Datatype.parse('String').translate(dialect=Dialect.POSTGRES)
         :param dialect: Dialect to use (e.g. Postgres).
@@ -70,7 +72,8 @@ class Datatype(object):
 
     def __repr__(self):
         """
-        The formal representation of this class. You could put the output to eval to create the exact same datatype.
+        The formal representation of this class. You could put the
+        output to eval to create the exact same datatype.
         :return: Returns the formal representation of this instance.
         """
         return "Datatype(type='{}')".format(self.type)
@@ -88,8 +91,13 @@ class Datatype(object):
             if key.lower() == candidate.lower():
                 return value
 
-        raise ValueError("Argument 'candidate' is not a supported datatype. Value is '{}'. Possible types are: '{}'"
-                         .format(str(candidate), ", ".join(Datatype.__LOOKUP.keys())))
+        raise ValueError(
+            "Argument 'candidate' is not a supported datatype. "
+            "Value is '{}'. Possible types are: '{}'".format(
+                str(candidate),
+                ", ".join(Datatype.__LOOKUP.keys())
+            )
+        )
 
     @staticmethod
     def parse(candidate, fail_on_error=True):
@@ -97,8 +105,10 @@ class Datatype(object):
         Parses the given candidate and checks if it is a supported datatype.
         A ValueError is thrown when the cancidate is not supported.
         :param candidate: Candidate to check for compatibility.
-        :param fail_on_error: If True this will suppress the exception and return Datatype.STRING instead
-        :return: Returns an instance of Datatype (with the correct datatype representation)
+        :param fail_on_error: If True this will suppress the exception
+                              and return Datatype.STRING instead
+        :return: Returns an instance of Datatype
+                (with the correct datatype representation)
         """
         try:
             return Datatype(candidate)
@@ -113,7 +123,8 @@ def get_translator_clazz(dialect=None):
     """
     Factory method to return an applicable translator for the given dialect.
     Please check the Dialect class enum for available dialects.
-    If no dialect is specified a default one will be returned (and that is up to the factory -> so be careful :P).
+    If no dialect is specified a default one will be returned
+    (and that is up to the factory -> so be careful :P).
     :param dialect: Dialect you translator should support.
     :return: Returns a translator that supports the specified dialect.
     """
@@ -134,7 +145,8 @@ def get_translator_clazz(dialect=None):
 
 class Translator(object):
     """
-    A Translator 'translates' datatypes between the internal datatype namespace (see class Datatype) and an
+    A Translator 'translates' datatypes between the internal
+    datatype namespace (see class Datatype) and an
     external dialect (e.g. Postgres database).
     """
 
@@ -149,32 +161,42 @@ class Translator(object):
     @abstractmethod
     def hash_function(self, values=None):
         """
-        Returns the hash function as a string for use in sql templates that the given dialect supports.
-        If the argument 'values' is specified, the hash function is directly applied to the given values.
-        If the argument 'values' is not specified just a hash function with the placeholder 'VALUES' is returned.
-        Do
-            h = instance.hash_function().format(VALUES='my_value')
+        Returns the hash function as a string for use in sql templates
+        that the given dialect supports.
+        If the argument 'values' is specified, the hash function
+        is directly applied to the given values.
+        If the argument 'values' is not specified just a hash function
+        with the placeholder 'VALUES' is returned.
+        Do h = instance.hash_function().format(VALUES='my_value')
         :param values: Optional values to apply the hash function to.
         :return: A String with the correct use of the dialects hash function.
         """
-        raise NotImplementedError("You have to implement this method in a child class, dude!")
+        raise NotImplementedError(
+            "You have to implement this method in a child class, dude!"
+        )
 
     @abstractmethod
     def dialect_datatype(self):
         """
-        Returns a datatype that is supported by the dialect. For example the result can be used for table creations.
+        Returns a datatype that is supported by the dialect.
+        For example the result can be used for table creations.
         :return:
         """
-        raise NotImplementedError("You have to implement this method in a child class, dude!")
+        raise NotImplementedError(
+            "You have to implement this method in a child class, dude!"
+        )
 
     @abstractmethod
     def default_value(self):
         """
-        Returns a default value for the given datatype (constructor argument) that is supported / accepted
+        Returns a default value for the given datatype (constructor argument)
+        that is supported / accepted
         by the dialect.
         :return:
         """
-        raise NotImplementedError("You have to implement this method in a child class, dude!")
+        raise NotImplementedError(
+            "You have to implement this method in a child class, dude!"
+        )
 
     @abstractmethod
     def cast(self, target_type):
@@ -184,7 +206,9 @@ class Translator(object):
             c = instance.cast().format(VALUE='my_value')
         :return:
         """
-        raise NotImplementedError("You have to implement this method in a child class, dude!")
+        raise NotImplementedError(
+            "You have to implement this method in a child class, dude!"
+        )
 
 
 class PostgresTranslator(Translator):
@@ -207,25 +231,46 @@ class PostgresTranslator(Translator):
         },
         Datatype.DATETIME: {
             "type": "timestamp with time zone",
-            "lookups": ['timestamp with time zone', 'timestamp', 'timestamp without time zone'],
+            "lookups": [
+                'timestamp with time zone',
+                'timestamp',
+                'timestamp without time zone'
+            ],
             "default": "'1970-01-01 00:00:00.000'",
             "cast": "to_timestamp({VALUE}, 'YYYY-MM-DD HH24:MI:SS.US')"
         },
         Datatype.DOUBLE: {
             "type": "double precision",
-            "lookups": ['double precision', 'double', 'float', 'real', 'numeric', 'decimal'],
+            "lookups": [
+                'double precision',
+                'double',
+                'float',
+                'real',
+                'numeric',
+                'decimal'
+            ],
             "default": "0.0",
             "cast": "CAST({VALUE} AS double precision)"
         },
         Datatype.NUMERIC: {
             "type": "bigint",
-            "lookups": ['bigint', 'integer', 'smallint', 'int', 'int'],
+            "lookups": [
+                'bigint',
+                'integer',
+                'smallint',
+                'int'
+            ],
             "default": "0",
             "cast": "{VALUE}::bigint"
         },
         Datatype.STRING: {
             "type": "text",
-            "lookups": ['character varying', 'text', 'character', 'char'],
+            "lookups": [
+                'character varying',
+                'text',
+                'character',
+                'char'
+            ],
             "default": "''",
             "cast": "{VALUE}::text"
         },
@@ -243,7 +288,11 @@ class PostgresTranslator(Translator):
         },
         Datatype.TIME: {
             "type": "time with time zone",
-            "lookups": ["time", "time with time zone", "time without time zone"],
+            "lookups": [
+                "time",
+                "time with time zone",
+                "time without time zone"
+            ],
             "default": "'00:00:00.000'",
             "cast": "{VALUE}::::time with time zone"
         }
@@ -255,8 +304,11 @@ class PostgresTranslator(Translator):
     def __invert():
         def _put(lookup, key, datatype):
             if key in lookup and datatype != lookup[key]:
-                raise KeyError("It looks like that you have the same synonym for an environment for different "
-                               "environments. This is a configuration error. Fix it!")
+                raise KeyError(
+                    "It looks like that you have the same synonym for "
+                    "an environment for different environments. "
+                    "This is a configuration error. Fix it!"
+                )
             lookup[key] = datatype
 
         reversed_lookup = {}
@@ -277,17 +329,23 @@ class PostgresTranslator(Translator):
 
     def hash_function(self, values=None):
         """
-        Returns the postgres hash function as a string for use in sql templates.
-        If the argument 'values' is specified, the hash function is directly applied to the given values.
-        If the argument 'values' is not specified just a hash function with the placeholder 'VALUES' is returned.
+        Returns the postgres hash function as a string for use in sql templates
+        * If the argument 'values' is specified,
+        the hash function is directly applied to the given values.
+        * If the argument 'values' is not specified just a hash function
+        with the placeholder 'VALUES' is returned.
         Do
             h = instance.hash_function().format(VALUES='my_value')
             # 'md5(my_value)'
 
-        In addition: If you put in a list of tuples or a single tuple, it is assumed that the first element is the
-        actual value; the second element represents the datatype (in the systems internal speech -> see Datatype class).
-        If you provide this correctly the resulting hash function will handle NULL-Values correctly.
-        Hint: NULL Values will lead to NULL hash values when the hash function is applied. So we schould avoid this.
+        In addition: If you put in a list of tuples or a single tuple,
+        it is assumed that the first element is the
+        actual value; the second element represents the datatype
+        (in the systems internal speech -> see Datatype class).
+        If you provide this correctly the resulting hash function will
+        handle NULL-Values correctly.
+        Hint: NULL Values will lead to NULL hash values when the hash
+              function is applied. So we schould avoid this.
         Example
             t = PostgresTranslator(Datatype.parse(Datatype.STRING))
             t.hash_function([('a', Datatype.STRING),('b', Datatype.NUMERIC)])
@@ -307,8 +365,11 @@ class PostgresTranslator(Translator):
         input_vals = []
         for value in values:
             if isinstance(value, tuple) and len(value) == 2:
-                dv = Datatype.parse(value[1]).translate(Dialect.POSTGRES).default_value()
-                input_vals.append("COALESCE({}, {})::text".format(value[0], dv))
+                dt = Datatype.parse(value[1])
+                dv = dt.translate(Dialect.POSTGRES).default_value()
+                input_vals.append(
+                    "COALESCE({}, {})::text".format(value[0], dv)
+                )
             else:
                 # No datatype provided just the value
                 input_vals.append(str(value) + "::text")
@@ -317,14 +378,16 @@ class PostgresTranslator(Translator):
 
     def dialect_datatype(self):
         """
-        Returns a datatype that is supported by postgres. For example the result can be used for table creations.
+        Returns a datatype that is supported by postgres.
+        For example the result can be used for table creations.
         :return:
         """
         return PostgresTranslator.MAPPING[self.datatype.type]['type']
 
     def default_value(self):
         """
-        Returns a default value for the given datatype (constructor argument) that is supported / accepted
+        Returns a default value for the given datatype
+        (constructor argument) that is supported / accepted
         by postgres.
         :return:
         """
@@ -344,7 +407,8 @@ class PostgresTranslator(Translator):
     @staticmethod
     def reverse_lookup(source_type):
         """
-        In case you have a postgeres data type and you need the Datatype representation...
+        In case you have a postgeres data type and you need the
+        Datatype representation...
         PostgresTranslator.reverse_lookup('bigint') => Datatype.NUMERIC
         :param source_type: Postgres data type
         :return: Datatype

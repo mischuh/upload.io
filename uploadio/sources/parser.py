@@ -21,7 +21,10 @@ class Parser(Loggable):
     only print the information to stdout....
     """
 
-    def __init__(self, source: pd.DataFrame, collection: SourceDefinition) -> None:
+    def __init__(
+            self,
+            source: pd.DataFrame,
+            collection: SourceDefinition) -> None:
         """
         :param source: The source represented as a pandas.DataFrame
         :param collection: The information about the source
@@ -47,8 +50,10 @@ class SimpleParser(Parser):
         :return:
         """
         if not self.collection.validate(list(self.source.columns)):
-            raise ValueError(f"Number of source columns ({len(self.source.columns)}) "
-                             f"vs. target ({len(self.collection.fields)}) do not match!")
+            raise ValueError(
+                f"Number of source columns ({len(self.source.columns)}) "
+                f"vs. target ({len(self.collection.fields)}) do not match!"
+            )
 
         for rix, row in self.source.iterrows():
             for column, value in row.iteritems():

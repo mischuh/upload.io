@@ -51,7 +51,8 @@ def create_table(collection) -> None:
             PostgresTranslator(Datatype(f.data_type)).dialect_datatype()
         ) for f in collection.fields.values()]
     cols = ', '.join(col_types)
-    row_hash = collection.target_config.get('options', {}).get('row_hash', False)
+    target_options = collection.target_config.get('options', {})
+    row_hash = target_options.get('row_hash', False)
     if row_hash:
         cols += ', row_hash text PRIMARY KEY'
     stmt = "create table if not exists {} ({} )".format(
@@ -98,7 +99,9 @@ def customer():
     # DatabaseTarget(config=collection.target_config, parser=p).output()
     # data = select_table(collection)
     # print(data.head())
-    target = AvroTarget(config=collection.target_config, parser=p, schema=collection.schema)
+    target = AvroTarget(
+        config=collection.target_config, parser=p, schema=collection.schema
+    )
     target.output(namespace=catalog.namespace,
                   version=catalog.version,
                   source='customer')
