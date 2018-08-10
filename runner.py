@@ -1,23 +1,21 @@
 import argparse
 import os
 import time
-import logging
+from typing import Tuple, Dict, Any
 
-from typing import Tuple
-from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
+from watchdog.observers import Observer
 
-from sandbox import catalog_provider
+from sources.collection import SourceDefinition
+from uploadio.common.db import DatabaseFactory
+from uploadio.common.translator import Datatype, PostgresTranslator
+from uploadio.sources import source as src
+from uploadio.sources.catalog import JsonCatalogProvider
 from uploadio.sources.parser import ParserFactory
 from uploadio.sources.target import DatabaseTarget
-from uploadio.sources import source as src
+from uploadio.utils import Loggable
 
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)-15s - [%(levelname)-10s] %(message)s"
-)
-log = logging.getLogger(os.path.basename(__file__))
+log = Loggable().logger
 
 
 class PipelineHandler(PatternMatchingEventHandler):
@@ -40,6 +38,48 @@ class PipelineHandler(PatternMatchingEventHandler):
     def json_source(path: str) -> src.Source:
         return src.JSONSource(uri=path).load()
 
+    @staticmethod
+    def create_table(collection: SourceDefinition) -> None:
+        """
+        Auxiliary method to create database and table if you start
+        on a vanilla system
+        :param collection: target config from catalog
+        """
+
+        def table_available(collection: SourceDefinition) -> bool:
+            db = DatabaseFactory.load(collection.target_config)
+            stmt = "select * from {} limit 1".format(collection.name)
+            return db.select(stmt) is not None
+
+        if not table_available(collection):
+            log.info("No database table available. Going to create "
+                     "everything...")
+            db = DatabaseFactory.load(collection.target_config)
+            db.execute(
+                statement="drop table if exists {}".format(collection.name),
+                modify=True
+            )
+            col_types = []
+            for f in collection.fields.values():
+                col_types.append('"{}" {}'.format(
+                    f.alias,
+                    PostgresTranslator(
+                        Datatype(f.data_type)
+                    ).dialect_datatype()
+                ))
+            cols = ', '.join(col_types)
+            target_options = collection.target_config.get('options', {})
+            row_hash = target_options.get('row_hash', False)
+            if row_hash:
+                cols += ', row_hash text PRIMARY KEY'
+            stmt = "create table if not exists {} ({} )".format(
+                collection.target_config['connection'].get('table', 'default'),
+                cols
+            )
+            db.execute(statement=stmt, modify=True)
+        else:
+            log.info("Database table already exists. Nothing to do here...")
+
     def process(self, event) -> None:
         """
         event.event_type
@@ -49,11 +89,13 @@ class PipelineHandler(PatternMatchingEventHandler):
         event.src_path
             path/to/observed/file
         """
+
         # the file will be processed there
         cat_file = PipelineHandler.json_source(self.catalog)
         log.info("Loading catalog {}".format(cat_file.uri))
-        catalog = catalog_provider(cat_file)
+        catalog = JsonCatalogProvider(cat_file.data)
         collection = catalog.load(self.source_name)
+        PipelineHandler.create_table(collection)
         log.info("Processing Source: {}".format(event.src_path))
         csv = collection.source.load(uri=event.src_path)
         parser = ParserFactory.load(collection.parser)

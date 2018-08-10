@@ -12,12 +12,12 @@
     * sqlite is ok for the beginning...
     * postgres 
 * DictionarySource, load a bunch of files
-
-*Medium term:*
-
 * ~~Scheduler for repeating tasks~~
     * [Watchdog](https://pypi.org/project/watchdog/)
         * http://brunorocha.org/python/watching-a-directory-for-file-changes-with-python.html
+        
+*Medium term:*
+* Plugable ``Source`` packaging so one can easily extend sources
 * Docker infrastucture to launch a proper setting
 
 *Long term:*

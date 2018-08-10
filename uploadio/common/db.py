@@ -77,10 +77,19 @@ class SQLAlchemyDatabase(AbstractDatabase):
                     self.logger.debug(statement)
                     cur.execute(statement, [] if not values else values)
                     conn.commit()
+            except Exception:
+                import traceback
+                self.logger.error(
+                    "Error when executing database transasction: {}".format(
+                        traceback.format_exc()
+                    )
+                )
             finally:
                 cur.close()
         finally:
             conn.close()
+
+        return None
 
     def select(self, statement: str, **options) -> DataFrame:
         return self._execute(statement, **options)
@@ -169,12 +178,21 @@ class PostgresDatabase(AbstractDatabase):
                     cur.execute(statement, values)
                     conn.commit()
                     return None
+            except Exception:
+                import traceback
+                self.logger.error(
+                    "Error when executing database transasction: {}".format(
+                        traceback.format_exc()
+                    )
+                )
             finally:
-                conn.close()
+                cur.close()
         finally:
             for notice in conn.notices:
-                self.logger.info("[NOTICE]: " + notice)
+                self.logger.debug("[NOTICE]: " + notice)
             conn.close()
+
+        return None
 
     def select(self, statement: str, **options) -> DataFrame:
         return self._execute(statement, **options)

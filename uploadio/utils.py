@@ -1,5 +1,6 @@
 import inspect
 import logging
+import os
 from hashlib import md5
 
 
@@ -107,6 +108,7 @@ def auto_str(__repr__=False):
 
 
 class Loggable:
+
     """
     Adds a logger property to the class to provide easy access to a
     configured logging instance to use.
@@ -122,5 +124,8 @@ class Loggable:
         Returns:
             (logging.Logger)
         """
-        component = "{}.{}".format(type(self).__module__, type(self).__name__)
-        return logging.getLogger(component)
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(name)-15s - [%(levelname)-10s] %(message)s"
+        )
+        return logging.getLogger(os.path.basename(__file__))
