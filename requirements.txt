@@ -6,6 +6,7 @@
 #
 -e git+git://github.com/mischuh/p3common.git#egg=p3common
 argh==0.26.2              # via watchdog
+attrs==18.2.0
 avro-python3==1.8.2
 certifi==2018.1.18        # via requests
 chardet==3.0.4            # via requests
@@ -20,6 +21,8 @@ python-dateutil==2.6.1    # via pandas
 pytz==2017.3              # via pandas
 pyyaml==3.13              # via watchdog
 requests==2.18.4
+schema==0.6.8
 six==1.11.0               # via python-dateutil
+sqlalchemy==1.2.15
 urllib3==1.22             # via requests
 watchdog==0.8.3
