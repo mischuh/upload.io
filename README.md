@@ -3,7 +3,7 @@
 The basic idea is that you have a source and a target and a mapping in between
 and a catalog that holds all the information.
 
-You can find a simple exmaple here:
+You can find simple exmaples here:
     python3 sandbox.py
 
 First try to use static typing in python. Further more this is a playground to glue different
@@ -17,4 +17,4 @@ do some stream processing on it)...
 ## Build examlpe container
 
     make docker
-    docker run -v DIRECTORY_TO_OBSERVER:watchdog --net=host uploadio:0.0.1 
+    docker run -v DIRECTORY_TO_OBSERVER:watchdog --net=host uploadio:0.0.1
