@@ -2,7 +2,7 @@ from typing import Dict, List, Any, Union
 
 from src.p3common.common import validators as validate
 from uploadio.sources.source import Source, JSONSource, SourceFactory
-from .transformation import Transformation
+from uploadio.sources.transformation import Transformation
 
 
 class Field:

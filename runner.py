@@ -1,16 +1,16 @@
 import argparse
 import os
 import time
-from typing import Tuple, Dict, Any
+from typing import Any, Dict, Tuple
 
 from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers import Observer
 
-from sources.collection import SourceDefinition
-from uploadio.common.db import DatabaseFactory
+from uploadio.common.db import Database, DBConnection
 from uploadio.common.translator import Datatype, PostgresTranslator
 from uploadio.sources import source as src
 from uploadio.sources.catalog import JsonCatalogProvider
+from uploadio.sources.collection import SourceDefinition
 from uploadio.sources.parser import ParserFactory
 from uploadio.sources.target import DatabaseTarget
 from uploadio.utils import Loggable
@@ -47,14 +47,14 @@ class PipelineHandler(PatternMatchingEventHandler):
         """
 
         def table_available(collection: SourceDefinition) -> bool:
-            db = DatabaseFactory.load(collection.target_config)
+            db = Database(DBConnection(collection.target_config['connection']))
             stmt = "select * from {} limit 1".format(collection.name)
             return db.select(stmt) is not None
 
         if not table_available(collection):
             log.info("No database table available. Going to create "
                      "everything...")
-            db = DatabaseFactory.load(collection.target_config)
+            db = Database(DBConnection(collection.target_config['connection']))
             db.execute(
                 statement="drop table if exists {}".format(collection.name),
                 modify=True
@@ -99,7 +99,11 @@ class PipelineHandler(PatternMatchingEventHandler):
         log.info("Processing Source: {}".format(event.src_path))
         csv = collection.source.load(uri=event.src_path)
         parser = ParserFactory.load(collection.parser)
-        p = parser(source=csv.data, collection=collection)
+        p = parser(
+            source=csv.data, 
+            collection=collection,
+            options=collection.parser_config.get('options', {})
+        )
         log.info("Inserting values into table '{}'".format(
             collection.target_config['connection'].get('table', 'default')
         ))

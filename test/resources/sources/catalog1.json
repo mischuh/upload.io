@@ -12,10 +12,9 @@
                 }
             },
             "parser": {
-                "name": "JSONEvent"              
+                "name": "JSONEvent"
             },
             "target": {
-                "type": "avro",
                 "connection": {
                     "uri": "./tmp/test.avro",
                     "schema": "./test/resources/schema_new.avsc"

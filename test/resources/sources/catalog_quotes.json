@@ -1,0 +1,82 @@
+{
+  "namespace": "quotes",
+  "version": "0.1",
+  "sources": {
+    "quotes": {
+      "source": {
+        "type": "csv",
+        "uri": "./test/resources/sources/quotes.csv",
+        "options": {
+          "quotechar": "\""
+        }
+      },
+      "parser": {
+        "name": "DBOut",
+        "options": {
+          "row_hash": true
+        }
+      },
+      "target": {
+        "connection": {
+          "uri": "postgresql://postgres:postgres@localhost:5433/postgres",
+          "table": "quotes",
+          "options": {
+            "schema": "public",
+            "ssl": "disable",
+            "chunksize": 100
+          }
+        }
+      },
+      "fields": [
+        {
+          "name": "quote",
+          "data_type": "string"
+        },
+        {
+          "name": "author",
+          "data_type": "string"
+        },
+        {
+          "name": "tags",
+          "data_type": "string",
+          "transformations": [
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": "{",
+                  "new": ""
+                }
+              },
+              "order": 1
+            },
+            {
+              "type": "rule",
+              "task": {
+                "name": "replace",
+                "operator": {
+                  "old": "}",
+                  "new": ""
+                }
+              },
+              "order": 2
+            }
+          ]
+        },
+        {
+          "name": "words",
+          "data_type": "integer"
+        },
+        {
+          "name": "chars",
+          "data_type": "integer"
+        },
+        {
+          "name": "language",
+          "data_type": "string"
+        }
+      ]
+    }
+  }
+}

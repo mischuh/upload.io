@@ -84,18 +84,6 @@ class JsonCatalogProvider(CatalogProvider):
             fields=fields
         )
 
-    # def __eval_source_name(self, source_name: str) -> Dict:
-    #     if not source_name:
-    #         # we don´t know the source name
-    #         # so we take the first one
-    #         # otherwise an exception will be raised
-    #         return list(self.sources)[0]
-    #     else:
-    #         return JsonCatalogProvider.__get_key_or_die(
-    #             self.sources,
-    #             source_name
-    #         )
-
     @staticmethod
     def __retrieve_fields(source: Dict) -> Dict[str, Field]:
         validate.is_in_dict_keys('fields', source)

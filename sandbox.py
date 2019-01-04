@@ -4,12 +4,12 @@ import os
 import avro
 from pandas import DataFrame
 
-from uploadio.common.db import DatabaseFactory
+from uploadio.common.db import Database, DBConnection
 from uploadio.common.translator import Datatype, PostgresTranslator
 from uploadio.sources import catalog as cat
 from uploadio.sources import source as src
 from uploadio.sources.parser import ParserFactory
-from uploadio.sources.target import AvroTarget, DatabaseTarget
+from uploadio.sources.target import AvroTarget, DatabaseTarget, LoggableTarget
 
 
 def file(file_name: str) -> str:
@@ -40,8 +40,8 @@ def read_avro(data) -> None:
     reader.close()
 
 
-def create_table(collection) -> None:
-    db = DatabaseFactory.load(collection.target_config)
+def create_table(collection) -> None:        
+    db = Database(DBConnection(collection.target_config['connection']))
     db.execute(
         statement="drop table if exists {}".format(collection.name),
         modify=True
@@ -62,8 +62,8 @@ def create_table(collection) -> None:
     db.execute(statement=stmt, modify=True)
 
 
-def select_table(collection) -> DataFrame:
-    db = DatabaseFactory.load(collection.target_config)
+def select_table(collection) -> DataFrame:    
+    db = Database(DBConnection(collection.target_config['connection']))
     stmt = "select * from {}".format(collection.name)
     return db.select(stmt)
 
@@ -72,12 +72,14 @@ def kontoauszug():
     catalog = catalog_provider(json_source(
         file("sources/catalog_auszug.json")))
     collection = catalog.load('kontoauszug')
-    csv = collection.source.load()
+    source = collection.source.load()  
     parser = ParserFactory.load(collection.parser)
-    # p = parser(source=csv.data, collection=auszug, schema=auszug.schema)
-    # schema = json_source(file(auszug.schema)).data
-    p = parser(source=csv.data, collection=collection)    
-    # LoggableTarget(config=collection.target_config, parser=p).output()
+    p = parser(
+        source=source.data, 
+        collection=collection,
+        options=collection.parser_config.get('options', {})
+    )
+    # # LoggableTarget(config=collection.target_config, parser=p).output()
     create_table(collection)
     DatabaseTarget(config=collection.target_config, parser=p).output()
     data = select_table(collection)
@@ -113,13 +115,36 @@ def http():
     collection = catalog.load('SalesJan2009')
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
-    p = parser(source=csv.data, collection=collection)
+    p = parser(
+        source=csv.data, 
+        collection=collection,
+        options=collection.parser_config.get('options', {})
+    )
     # target = LoggableTarget(config=collection.target_config, parser=p)
     # target.output()
     create_table(collection)
     DatabaseTarget(config=collection.target_config, parser=p).output()
     data = select_table(collection)
     print(data.head())
+
+
+def quotes():
+    catalog = catalog_provider(json_source(file(
+        "sources/catalog_quotes.json")))
+    collection = catalog.load('quotes')
+    json = collection.source.load()
+    parser = ParserFactory.load(collection.parser)
+    p = parser(
+        source=json.data, 
+        collection=collection,
+        options=collection.parser_config.get('options', {})
+    )
+    # target = LoggableTarget(config={}, parser=p)
+    # target.output()
+    create_table(collection)
+    DatabaseTarget(config=collection.target_config, parser=p).output()
+    # data = select_table(collection)
+    # print(data.head())
 
 
 if __name__ == '__main__':

@@ -125,7 +125,7 @@ class Loggable:
             (logging.Logger)
         """
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,
             format="%(asctime)s - %(name)-15s - [%(levelname)-10s] %(message)s"
         )
         return logging.getLogger(os.path.basename(__file__))

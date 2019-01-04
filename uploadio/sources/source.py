@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from abc import abstractmethod
-from typing import Dict, Any, Union, Type
+from typing import Any, Dict, Type, Union
 
 import pandas as pd
 
@@ -14,14 +16,14 @@ class Source(Loggable):
         self.options: Dict[str, Any] = {} if not options else options
         self.data: Union[Dict[str, Any], pd.DataFrame] = None
 
-    def load(self, uri: str=None, *args, **kwargs) -> Any:
+    def load(self, uri: str=None, *args, **kwargs) -> Source:
         """
         :param uri: resource to load
             None: use URI defined in configuration
             Else: explicitly use different URI with options defined in config
         :param args: additional args
         :param kwargs: options
-        :return: Any
+        :return: Source
         """
         if uri:
             validate.str_not_empty(uri)
@@ -29,7 +31,7 @@ class Source(Loggable):
         return self._load(uri, *args, **kwargs)
 
     @abstractmethod
-    def _load(self, uri: str=None, *args, **kwargs) -> Any:
+    def _load(self, uri: str=None, *args, **kwargs) -> Source:
         raise NotImplementedError()
 
 
@@ -58,7 +60,6 @@ class JSONSource(Source):
             json_file.close()
         self.data = data if not df else pd.io.json.json_normalize(data, *args)
         return self
-        # return pd.io.json.json_normalize(data, *args)
 
 
 class HTTPSource(Source):

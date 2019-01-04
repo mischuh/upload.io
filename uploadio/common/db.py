@@ -1,245 +1,125 @@
-import sqlite3
 from abc import abstractmethod
-from typing import Any, Dict, Iterable, Optional, Type
+from typing import Any, Dict, Iterable, Optional
 
-import psycopg2
+import attr
+import schema
 from pandas import DataFrame
+from sqlalchemy import create_engine
+from sqlalchemy.engine.base import Connection, Engine
+from sqlalchemy.sql import text
 
 from src.p3common.common import validators as validate
 from uploadio.utils import Loggable
 
 
-class ConfigurationError(Exception):
-    pass
+@attr.s
+class DBConnection(Loggable):
+    """
+    Wraps the database (sqlalchemy) connection 
 
+    For further :py:class:`sqlalchemy.engine.Engine` information,
+    especially for the `config['options']` part,  see here:
+    https://docs.sqlalchemy.org/en/latest/core/engines.html
 
-class AbstractDatabase(Loggable):
+    For further :py:class:`sqlalchemy.engine.Connection` information see here.
+    Provides high-level functionality for a wrapped DB-API connection.
+    https://docs.sqlalchemy.org/en/latest/core/connections.html
+    """
 
-    def __init__(self, connection: Dict[str, Any]) -> None:
-        self.connection = connection
-
-    def execute(self, statement: str, **options) -> Optional[DataFrame]:
-        return self._execute(statement, **options)
-
-    @abstractmethod
-    def _execute(self, statement: str,
-                 modify: bool=False, **options) -> Optional[DataFrame]:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def select(self, statement: str, **options) -> DataFrame:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def insert(self, *args, **options) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def update(self, **options) -> None:
-        raise NotImplementedError()
-
-    def __repr__(self) -> str:
-        return "{}({})".format(
-            self.__class__.__name__,
-            self.__str__()
+    connection_schema = schema.Schema({
+        'uri': schema.Use(str),
+        'table': schema.Use(str),
+        schema.Optional('options', default={}): schema.Or(
+            {}, {schema.Use(str): object}
         )
+    })
 
+    def validate(self, instance, attribute) -> bool:
+        """ validators runs after the instance is initialized
+        this is why `self` works here """
+        return self.connection_schema.is_valid(attribute)
 
-class SQLAlchemyDatabase(AbstractDatabase):
+    config: Dict[str, Any] = attr.ib(validator=validate)
+    connection: Connection = attr.ib(init=False, repr=False)
+    engine: Engine = attr.ib(init=False, repr=False)
 
-    def __init__(self, connection: Dict[str, Any]) -> None:
-        validate.is_in_dict_keys('uri', connection['connection'])
-        validate.is_in_dict_keys('database', connection['connection'])
-        super().__init__(connection)
-        self.database = "{}/{}.db".format(
-            self.connection['connection']['uri'], 
-            self.connection['connection']['database']
-        )
-        # TODO: Validate config https://pypi.org/project/schema/
-        self.table = self.connection['connection']['table']
-        self.options = self.connection.get('options', {})
-
-    def sqlalchemy_conn_str(self) -> str:
-        return 'sqlite:///{}'.format(self.database)
-
-    def _execute(self, statement: str, modify: bool=False,
-                 values: Iterable=None, **options) -> Optional[DataFrame]:
-        conn = sqlite3.connect(self.database)
-        try:
-            cur = conn.cursor()
-            try:
-                if not modify:
-                    cur.execute(statement)
-                    rows = cur.fetchall()
-                    column_names = [desc[0] for desc in cur.description]
-                    return DataFrame(rows, columns=column_names)
-                else:
-                    self.logger.debug(statement)
-                    cur.execute(statement, [] if not values else values)
-                    conn.commit()
-            except Exception:
-                import traceback
-                self.logger.error(
-                    "Error when executing database transasction: {}".format(
-                        traceback.format_exc()
-                    )
-                )
-            finally:
-                cur.close()
-        finally:
-            conn.close()
-
-        return None
-
-    def select(self, statement: str, **options) -> DataFrame:
-        return self._execute(statement, **options)
-
-    def insert(self, upsert: bool=True,
-               conflict_target: str=None, **data) -> None:
+    def __attrs_post_init__(self) -> None:        
+        self.config = self.connection_schema.validate(self.config)
+        self.engine = create_engine(self.config['uri'])
         
-        columns = data['fields'].keys()
-        values = [data['fields'][col]['value'] for col in columns]   
-
-        statement = 'INSERT INTO {} ({}) VALUES ({})'.format(
-            self.table, 
-            ', '.join(map(lambda x: "'" + x + "'", columns)), 
-            ', '.join('?' * len(values))
+    def connect(self) -> Connection:
+        self.logger.debug(
+            "Establishing DB connection with {}".format(self.__repr__())
         )
+        self.connection = self.engine.connect()
+        return self.connection
 
-        # requires sqlite3 >= 3.24.0
-        if upsert:
-            validate.not_none(conflict_target)
-            statement = '{} ON CONFLICT({}) DO NOTHING'.format(
-                statement,
-                conflict_target
-            )
+    def __exit__(self):
+        self.close()
 
-        return self._execute(
-            statement=statement,
-            modify=True,
-            values=values
-        )
-
-    def update(self, **options) -> None:
-        pass
-
-    def __str__(self) -> str:
-        return self.sqlalchemy_conn_str()
+    def close(self) -> None:
+        self.logger.debug("Closing DB connection...")
+        self.connection.close()
+        
+    def is_connected(self) -> bool:
+        return not self.connection.closed
 
 
-class PostgresDatabase(AbstractDatabase):
+@attr.s
+class Database(Loggable):
+    """
+    :py:class:`DBConnection`
+    """
 
-    PSYCOPG2_CONNECTION_TEMPLATE = "dbname = '{DB}' user = '{USER}' " \
-            "host = '{HOST}' password = '{PWD}' port = '{PORT}' " \
-            "sslmode = '{SSLMODE}' connect_timeout={CONNECT_TIMEOUT}"
+    connection: DBConnection = attr.ib()
 
-    def __init__(self, connection: Dict[str, Any]) -> None:
-        super().__init__(connection)
-        self.parsed = self._parse()
+    def execute(self, statement: str, modify: bool = False,
+                data: Iterable = None) -> Optional[DataFrame]:
+        """
+        Executes a generic SQL statement on a `DBConnection`
 
-    def _parse(self) -> bool:
-        # TODO: Schema validation is much more elegant and efficent
-        self.host = self.connection['connection']['host']
-        self.user = self.connection['connection']['user']
-        self.pwd = self.connection['connection']['password']
-        self.port = self.connection['connection']['port']
-        self.db = self.connection['connection']['database']
-        self.schema = self.connection['connection']['schema']
-        self.table = self.connection['connection']['table']
-        self.ssl_mode = self.connection['connection']['ssl']
-        # Will force timeout when couldn't connect to database
-        # until the threshold is reached. Timeout is in seconds
-        self.connect_timeout = 30
-        return True
-
-    def _get_connection_string(self):
-        template = self.PSYCOPG2_CONNECTION_TEMPLATE
-        return template.format(
-            HOST=self.host, PORT=self.port, USER=self.user, PWD=str(self.pwd),
-            DB=self.db, SSLMODE=self.ssl_mode,
-            CONNECT_TIMEOUT=str(self.connect_timeout)
-        )
-
-    def _execute(self, statement: str, modify: bool=False,
-                 values: Iterable=None, **options) -> Optional[DataFrame]:
-        conn_str = self._get_connection_string()
-        conn = psycopg2.connect(conn_str)
-        conn.autocommit = True
+        :param statement: valid (for specified engine) SQL statement
+        :param modify: True if SQL modifies table entries (e.g. insert, update)
+        :param data: specify a fixed VALUES clause for an INSERT statement,
+                    or the SET clause for an UPDATE
+        """
+        data = [] if not data else data
+        conn = self.connection.connect()
         try:
-            cur = conn.cursor()
-            try:
-                if not modify:
-                    self.logger.debug(statement)
-                    cur.execute(statement)
-                    rows = cur.fetchall()
-                    column_names = [desc[0] for desc in cur.description]
-                    return DataFrame(rows, columns=column_names)
-                else:
-                    cur.execute(statement, values)
-                    conn.commit()
-                    return None
-            except Exception:
-                import traceback
-                self.logger.error(
-                    "Error when executing database transasction: {}".format(
-                        traceback.format_exc()
-                    )
+            self.logger.info(statement)
+            if not modify:
+                result = conn.execute(statement)
+                rows = result.fetchall()
+                column_names = list(result.keys())
+                return DataFrame(rows, columns=column_names)
+            else:
+                conn.execute(statement, data)
+                return None
+        except Exception:
+            import traceback
+            self.logger.error(
+                "Error when executing database transaction: {}".format(
+                    traceback.format_exc()
                 )
-            finally:
-                cur.close()
+            )
         finally:
-            for notice in conn.notices:
-                self.logger.debug("[NOTICE]: " + notice)
-            conn.close()
+            self.connection.close()
 
-        return None
+        return None  
 
     def select(self, statement: str, **options) -> DataFrame:
-        return self._execute(statement, **options)
+        return self.execute(statement, **options)
 
-    def insert(self, upsert: bool=True,
-               conflict_target: str='row_hash', **data) -> None:
-
-        columns = data['fields'].keys()
-        values = [data['fields'][col]['value'] for col in columns]
-
-        statement = 'INSERT INTO {} ({}) VALUES ({})'.format(
-            self.table,
-            ', '.join(map(lambda x: '"' + x + '"', columns)),
-            ','.join(['%s'] * len(values))
+    def insert(self, data: DataFrame, chunksize: int = 100) -> None:
+        self.connection.connect()
+        data.to_sql(
+            self.connection.config['table'], 
+            con=self.connection.engine,
+            if_exists='replace',
+            chunksize=chunksize,
+            schema=self.connection.config['options'].get('schema', None)
         )
 
-        if upsert:
-            validate.not_none(conflict_target)
-            statement = '{} ON CONFLICT ({}) DO NOTHING'.format(
-                statement,
-                conflict_target
-            )
-
-        return self._execute(statement=statement, modify=True, values=values)
-
+    @abstractmethod
     def update(self, **options) -> None:
-        pass
-
-    def __str__(self) -> str:
-        return self._get_connection_string()
-
-
-class DatabaseFactory:
-
-    __MAPPING: Dict[str, Type[AbstractDatabase]] = {
-        "sqlite3": SQLAlchemyDatabase,
-        "postgres": PostgresDatabase,
-    }
-
-    @staticmethod
-    def __find(name: str) -> Type[AbstractDatabase]:
-        validate.is_in_dict_keys(name, DatabaseFactory.__MAPPING)
-        return DatabaseFactory.__MAPPING[name]
-
-    @classmethod
-    def load(cls, config: Dict[str, Any]) -> AbstractDatabase:
-        validate.is_in_dict_keys('type', config)
-        validate.is_in_dict_keys('connection', config)
-        db = DatabaseFactory.__find(config.get('type'))
-        return db(config)
+        raise NotImplementedError()

@@ -2,25 +2,24 @@ import io
 import json
 import time
 from abc import abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable
 
+import attr
 import avro.datafile
 import avro.io
 import avro.schema
 
-from src.p3common.common import validators as validate
-
-from uploadio.common.db import DatabaseFactory
+from uploadio.common.db import Database, DBConnection
 from uploadio.sources.parser import Parser
 from uploadio.utils import Loggable, make_md5
 
 
+@attr.s
 class Target(Loggable):
 
-    def __init__(self, config: Dict[str, Any], parser: Parser) -> None:        
-        self.config = config
-        self.parser = parser
-
+    config: Dict[str, Any] = attr.ib()
+    parser: Parser = attr.ib()
+    
     def output(self, *args, **kwargs) -> None:
         self._output(*args, **kwargs)
 
@@ -32,7 +31,6 @@ class Target(Loggable):
 class LoggableTarget(Target):
 
     def _output(self, *args, **kwargs) -> None:
-
         for elem in self.parser.parse(**kwargs):
             print(elem)
             self.logger.info(elem)
@@ -41,31 +39,15 @@ class LoggableTarget(Target):
 class DatabaseTarget(Target):
 
     def __init__(self, config: Dict[str, Any], parser: Parser) -> None:
-        validate.is_in_dict_keys('type', config)
-
         super().__init__(config, parser)
-        self.db = DatabaseFactory.load(config)
-        self.row_hash = self.config.get('options', {}).get('row_hash', False)
-    
+        self.db = Database(connection=DBConnection(self.config['connection']))
+        
     def _output(self, **kwargs) -> None:
-        for elem in self.parser.parse(**kwargs):
-            if self.row_hash:
-                elem = DatabaseTarget._apply_row_hash(elem)
-                # print(elem)
-            # TODO: make conflict_target configurable?
-            self.db.insert(conflict_target='row_hash', **elem)
-
-    @staticmethod
-    def _apply_row_hash(elem: Dict[str, Any]) -> Dict[str, Any]:
-        fields = elem.get('fields')
-        new_elem = {'row_hash': {
-            'value': make_md5(str(fields)),
-            'datatype': 'string', 
-            'mandatory': True
-        }}
-        elem['fields'] = {**fields, **new_elem}
-        return elem
-
+        self.db.insert(
+            data=self.parser.parse(**kwargs),
+            chunksize=self.config.get('options', {}).get('chunksize', None)
+        )
+       
 
 class AvroTarget(Target):
 

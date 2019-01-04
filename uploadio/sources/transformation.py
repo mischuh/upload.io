@@ -1,6 +1,6 @@
 import abc
 from enum import Enum
-from typing import Any, Dict, List, Tuple, Type, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from src.p3common.common import validators as validate
 from uploadio.utils import auto_str
@@ -15,6 +15,10 @@ class Task:
         self.operator = None
 
     def operate(self, *args, **kwargs) -> Any:
+        self._operate(*args, **kwargs)
+
+    @abc.abstractmethod
+    def _operate(self, *args, **kwargs) -> Any:
         raise NotImplementedError()
 
 
@@ -27,13 +31,6 @@ class RuleTask(Task):
         super().__init__()
         self.name = name
         self.operator = operator
-
-    def operate(self, *args, **kwargs) -> Any:
-        self._operate(*args, **kwargs)
-
-    @abc.abstractmethod
-    def _operate(self, *args, **kwargs) -> Any:
-        raise NotImplementedError()
 
     def __repr__(self) -> str:
         return "RuleTask(name='{}', operator='{}')" \
@@ -53,13 +50,6 @@ class FilterTask(Task):
         self.attribute = attribute
         self.operator = operator
         self.expression = expression
-
-    def operate(self, *args, **kwargs) -> Any:
-        self._operate(*args, **kwargs)
-
-    @abc.abstractmethod
-    def _operate(self, *args, **kwargs) -> Any:
-        raise NotImplementedError()
 
     def __repr__(self) -> str:
         return "FilterTask(attribute='{}', operator='{}', " \
@@ -91,7 +81,6 @@ class Transformation:
         self.order = order
 
     def transform(self, *args, **kwargs) -> Any:
-        # print(self.__repr__())
         return self._transform(*args, **kwargs)
 
     @abc.abstractmethod

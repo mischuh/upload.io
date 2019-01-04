@@ -12,18 +12,16 @@
         }
       },
       "parser": {
-        "name": "JSONEvent"
+        "name": "DBOut",
+        "options": {
+          "row_hash": true
+        }
       },
       "target": {
-        "type": "sqlite3",        
-        "connection": {
-          "uri": "/tmp",
-          "database": "test",
-          "table": "SalesJan2009"
-        },
-        "options": {
-          "row_hash": true,
-          "upsert": true
+        "connection" : {
+          "uri": "sqlite:///test.db",
+          "table": "SalesJan2009",
+          "options": {}
         }
       },
       "fields": [
