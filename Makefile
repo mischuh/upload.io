@@ -57,5 +57,11 @@ rollback:
 		git reset --hard HEAD~1                        # rollback the commit
 		git tag -d `git describe --tags --abbrev=0`    # delete the tag
 
+pin:
+		./pip_requirements.sh
+
+update:
+		pip install -Ur dev-requirements.txt && pip install -Ur requirements.txt
+
 version:
 		@echo $(VERSION)
