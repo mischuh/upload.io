@@ -12,5 +12,7 @@ htmlcov
 src
 
 .DS_Store
+*.db
+*.sql
 
 venv
