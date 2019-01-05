@@ -18,6 +18,14 @@ help:
 		@echo "        Run doctest"
 		@echo "    rollback"
 		@echo "        Rolls back any changes (use for bad version bumps)"
+		@echo "    docker"
+		@echo "        builds a docker image (-e VERSION=x.x.x)"
+		@echo "    release"
+		@echo "        builds a docker image (-e VERSION=x.x.x)"
+		@echo "    pin"
+		@echo "        pins version into requirements.txt"
+		@echo "    update"
+		@echo "        update requirements"
 		@echo "    version"
 		@echo "        Prints out the current version"
 
@@ -46,22 +54,18 @@ test:
 doctest:
 		pytest --verbose --color=yes --doctest-modules $(SOURCE_PATH)
 
-docker:
-		docker build -t uploadio:$(VERSION) -f Dockerfile .
-
-release:
-		$(eval NEXT_VERSION := $(shell bumpversion --dry-run --allow-dirty --list patch | grep new_version | sed s,"^.*=",,))
-		@echo $(NEXT_VERSION)
-
 rollback:
 		git reset --hard HEAD~1                        # rollback the commit
 		git tag -d `git describe --tags --abbrev=0`    # delete the tag
+
+docker:
+		docker build -t uploadio:$(VERSION) -f Dockerfile .
 
 pin:
 		./pip_requirements.sh
 
 update:
-		pip install -Ur dev-requirements.txt && pip install -Ur requirements.txt
+		pip install -U pip && pip install -Ur dev-requirements.txt && pip install -Ur requirements.txt
 
 version:
 		@echo $(VERSION)
