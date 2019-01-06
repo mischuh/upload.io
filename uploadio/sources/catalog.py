@@ -59,7 +59,6 @@ class CatalogProvider:
 class JsonCatalogProvider(CatalogProvider):
     """
     """
-
     def __init__(self, catalog: Dict[str, Any]) -> None:
         validate.is_in_dict_keys('namespace', catalog)
         validate.is_in_dict_keys('version', catalog)
@@ -70,7 +69,7 @@ class JsonCatalogProvider(CatalogProvider):
         self.sources: dict = catalog.get('sources')
 
     def load(self, source_name: str) -> SourceDefinition:
-        src = JsonCatalogProvider.__get_key_or_die(self.sources,source_name)
+        src = JsonCatalogProvider.__get_key_or_die(self.sources, source_name)
         source_config = JsonCatalogProvider.__get_key_or_die(src, 'source')
         target_config = JsonCatalogProvider.__get_key_or_die(src, 'target')
         parser_config = JsonCatalogProvider.__get_key_or_die(src, 'parser')

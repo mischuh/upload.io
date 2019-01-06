@@ -5,7 +5,7 @@
     "kontoauszug": {
       "source": {
         "type": "csv",
-        "uri": "./test/resources/sources/auszug.csv",
+        "uri": "./resources/sandbox/auszug.csv",
         "options": {
           "encoding": "windows-1252",
           "delimiter": ";",

@@ -97,12 +97,25 @@ class ReplaceRuleTransformation(Transformation):
     def __init__(self, task: RuleTask, order: Optional[int]) -> None:
         validate.is_in_dict_keys('old', task.operator)
         validate.is_in_dict_keys('new', task.operator)
+        validate.is_str(task.operator['new'])
         super().__init__(TransformationType.RULE, task, order)
 
-    def _transform(self, value: str ='', *args, **kwargs) -> str:
+    def _transform(self, value: str = '', *args, **kwargs) -> str:
         old = self.task.operator['old']
         new = self.task.operator['new']
         return value.replace(old, new)
+
+
+class RegexReplaceTransformation(ReplaceRuleTransformation):
+    
+    def __init__(self, task: RuleTask, order: Optional[int]) -> None:
+        super().__init__(TransformationType.RULE, task, order)
+
+    def _transform(self, value, *args, **kwargs) -> Any:
+        import re
+        old = self.task.operator['old']
+        new = self.task.operator['new']
+        return re.sub(r'{}'.format(old), new, value)
 
 
 class UppercaseRuleTransformation(Transformation):
@@ -110,7 +123,7 @@ class UppercaseRuleTransformation(Transformation):
     def __init__(self, task: RuleTask, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)
 
-    def _transform(self, value: str='', *args, **kwargs) -> str:
+    def _transform(self, value: str = '', *args, **kwargs) -> str:
         validate.is_str(value)
         return value.upper()
 
@@ -132,12 +145,13 @@ class LambdaRuleTransformation(Transformation):
             and eval(self.task.operator).__name__ == "<lambda>"
 
 
+
 class DateFormatTransformation(Transformation):
 
     def __init__(self, task: RuleTask, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)
 
-    def _transform(self, value: str='', *args, **kwargs) -> str:
+    def _transform(self, value: str = '', *args, **kwargs) -> str:
         validate.is_str(value)
         import datetime
         from_fmt = self.task.operator['from']
@@ -180,6 +194,7 @@ class TransformationFactory:
     # TODO: Make it more flexible and reproducible
     __MAPPING: Dict[str, Type[Transformation]] = {
         "replace": ReplaceRuleTransformation,
+        "regexreplace": RegexReplaceTransformation,
         "uppercase": UppercaseRuleTransformation,
         "lambda": LambdaRuleTransformation,
         "date_format": DateFormatTransformation

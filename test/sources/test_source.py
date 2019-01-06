@@ -3,20 +3,20 @@ import os
 
 import pandas as pd
 import pytest
-
+from typing import Dict, Any
 from uploadio.sources import source as src
 
 
 @pytest.yield_fixture(scope="function")
 def csv_path() -> str:
     base_path = os.path.abspath(os.path.dirname(__file__))
-    yield os.path.join(base_path, "../resources/sources/test1.csv")
+    yield os.path.join(base_path, "../resources/test_data.csv")
 
 
 @pytest.yield_fixture(scope="function")
-def json_path() -> str:
+def json_path() -> Dict[str, Any]:
     base_path = os.path.abspath(os.path.dirname(__file__))
-    yield os.path.join(base_path, "../resources/sources/test1.json")
+    yield os.path.join(base_path, "../resources/json_file.json")
 
 
 def test_csv_source_provider(csv_path: str) -> None:
@@ -40,7 +40,7 @@ def test_source_factory() -> None:
 
     config: Dict[str, str] = {
         'type': 'csv',
-        'uri': './test/resources/sources/test1.csv',
+        'uri': './test/resources/test_data.csv',
         'options': {
             'encoding': 'utf-8',
             'delimiter': ','

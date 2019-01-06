@@ -5,7 +5,7 @@
         "customer": {
             "source": {
                 "type": "csv",
-                "uri": "./test/resources/sources/test1.csv",
+                "uri": "./test/resources/test_data.csv",
                 "options": {
                     "encoding": "utf-8",
                     "delimiter": ","

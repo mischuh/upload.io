@@ -5,7 +5,7 @@
     "quotes": {
       "source": {
         "type": "csv",
-        "uri": "./test/resources/sources/quotes.csv",
+        "uri": "./resources/sandbox/quotes.csv",
         "options": {
           "quotechar": "\""
         }

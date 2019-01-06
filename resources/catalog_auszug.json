@@ -14,20 +14,21 @@
         }
       },
       "parser": {
-        "name": "JSONEvent"
+        "name": "DBOut",
+        "options": {
+          "row_hash": true
+        }
       },
       "target": {
-        "type": "postgres",
         "connection": {
-          "host": "localhost",
-          "port": "5433",
-          "user": "postgres",
-          "password": "postgres",
-          "database": "postgres",
-          "schema": "public",
+          "uri": "postgresql+psycopg2://postgres:postgres@localhost:5433/postgres",
           "table": "kontoauszug",
-          "ssl": "disable"
-        },
+          "options": {
+            "chunksize": 100,
+            "schema": "public"
+          }
+        }
+      },
         "options": {
           "row_hash": true,
           "upsert": true

@@ -1,0 +1,77 @@
+{
+    "namespace": "test",
+    "version": "0.1",
+    "sources": {
+        "testcatalog": {
+            "source": {
+                "type": "csv",
+                "uri": "./test/resources/sources/test.csv",
+                "options": {
+                    "encoding": "windows-1252",
+                    "delimiter": ";",
+                    "quotechar": "\"",
+                    "skiprows": 0
+                }
+            },
+            "parser": {
+                "name": "DBOut",
+                "options": {
+                    "row_hash": true
+                }
+            },
+            "target": {
+                "connection": {
+                    "uri": "sqlite:///test.db",
+                    "table": "testdata",
+                    "options": {}
+                }
+            },
+            "fields": [
+                {
+                    "name": "firstname",
+                    "alias": "first_name",
+                    "data_type": "string"
+                },
+                {
+                    "name": "lastname",
+                    "alias": "last_name",
+                    "data_type": "string"
+                },
+                {
+                    "name": "street",                    
+                    "data_type": "string"
+                },
+                {
+                    "name": "city",
+                    "data_type": "string"
+                },
+                {
+                    "name": "zip",
+                    "alias": "zipcode",
+                    "data_type": "int",
+                    "transformations": [
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "regexreplace",
+                                "operator": {
+                                    "old": "[^0-9]",
+                                    "new": ""
+                                }
+                            },
+                            "order": 1
+                        },
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "lambda",
+                                "operator": "lambda x: x*2"
+                            },
+                            "order": 2
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

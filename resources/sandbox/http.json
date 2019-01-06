@@ -7,7 +7,7 @@
         "type": "http",
         "uri": "http://samplecsvs.s3.amazonaws.com/SalesJan2009.csv",
         "options": {
-          "filename": "./test/resources/sources/SalesJan2009.csv",
+          "filename": "./resources/sandbox/SalesJan2009.csv",
           "resolver": "csv"
         }
       },

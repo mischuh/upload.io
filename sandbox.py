@@ -16,7 +16,7 @@ def file(file_name: str) -> str:
     base_path = os.path.abspath(os.path.dirname(__file__))
     return os.path.join(
         base_path,
-        f"test/resources/{file_name}"
+        f"resources/{file_name}"
     )
 
 
@@ -69,13 +69,15 @@ def select_table(collection) -> DataFrame:
 
 
 def kontoauszug():
+    print(file("sandbox/catalog_auszug.json"))
     catalog = catalog_provider(json_source(
-        file("sources/catalog_auszug.json")))
+        file("sandbox/catalog_auszug.json")))
+    print(catalog)
     collection = catalog.load('kontoauszug')
-    source = collection.source.load()  
+    source = collection.source.load()
     parser = ParserFactory.load(collection.parser)
     p = parser(
-        source=source.data, 
+        source=source.data,
         collection=collection,
         options=collection.parser_config.get('options', {})
     )
@@ -87,7 +89,7 @@ def kontoauszug():
 
 
 def customer():
-    catalog = catalog_provider(json_source(file("sources/catalog1.json")))
+    catalog = catalog_provider(json_source(file("sandbox/catalog1.json")))
     collection = catalog.load('customer')
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
@@ -111,12 +113,12 @@ def customer():
 
 
 def http():
-    catalog = catalog_provider(json_source(file("sources/http.json")))
+    catalog = catalog_provider(json_source(file("sandbox/http.json")))
     collection = catalog.load('SalesJan2009')
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
     p = parser(
-        source=csv.data, 
+        source=csv.data,
         collection=collection,
         options=collection.parser_config.get('options', {})
     )
@@ -130,7 +132,7 @@ def http():
 
 def quotes():
     catalog = catalog_provider(json_source(file(
-        "sources/catalog_quotes.json")))
+        "sandbox/catalog_quotes.json")))
     collection = catalog.load('quotes')
     json = collection.source.load()
     parser = ParserFactory.load(collection.parser)
@@ -148,4 +150,4 @@ def quotes():
 
 
 if __name__ == '__main__':
-    http()
+    kontoauszug()
