@@ -3,20 +3,21 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Dict, Type, Union
 
+import attr
 import pandas as pd
 
 from src.p3common.common import validators as validate
 from uploadio.utils import Loggable
 
 
+@attr.s
 class Source(Loggable):
     """ Provides data for a specific source """
-    def __init__(self, uri: str, **options) -> None:
-        self.uri = uri
-        self.options: Dict[str, Any] = {} if not options else options
-        self.data: Union[Dict[str, Any], pd.DataFrame] = None
+    uri: str = attr.ib()
+    data: Union[Dict[str, Any], pd.DataFrame] = attr.ib(init=False)
+    options: Dict[str, Any] = attr.ib(default={})
 
-    def load(self, uri: str=None, *args, **kwargs) -> Source:
+    def load(self, uri: str = None, *args, **kwargs) -> Source:
         """
         :param uri: resource to load
             None: use URI defined in configuration
@@ -31,13 +32,13 @@ class Source(Loggable):
         return self._load(uri, *args, **kwargs)
 
     @abstractmethod
-    def _load(self, uri: str=None, *args, **kwargs) -> Source:
+    def _load(self, uri: str = None, *args, **kwargs) -> Source:
         raise NotImplementedError()
 
 
 class DirectorySource(Source):
 
-    def _load(self, uri: str=None, *args, **kwargs):
+    def _load(self, uri: str = None, *args, **kwargs):
         regex = self.options.get('regex', '*')
         print(regex)
         return self
@@ -45,15 +46,18 @@ class DirectorySource(Source):
 
 class CSVSource(Source):
 
-    def _load(self, uri: str=None, *args, **kwargs) -> Source:
+    def _load(self, uri: str = None, *args, **kwargs) -> Source:
         self.options.update(**kwargs)
         self.data = pd.read_csv(filepath_or_buffer=self.uri, **self.options)
         return self
 
 
 class JSONSource(Source):
-    # TODO: Validate Schema...
-    def _load(self, uri: str=None, *args, df: bool=False, **kwargs) -> Source:
+    def _load(self,
+              uri: str = None,
+              *args,
+              df: bool = False,
+              **kwargs) -> Source:
         import json
         with open(self.uri, "r") as json_file:
             data = json.load(json_file)
@@ -66,7 +70,11 @@ class HTTPSource(Source):
     """
     Downloads a file from a HTTP Uri and stores it on the filesystem
     """
-    def _load(self, uri: str=None,  *args, df: bool=False, **kwargs) -> Source:
+    def _load(self,
+              uri: str = None,
+              *args,
+              df: bool = False,
+              **kwargs) -> Source:
         validate.is_in_dict_keys('filename', self.options)
         validate.is_in_dict_keys('resolver', self.options)
 
@@ -84,7 +92,7 @@ class HTTPSource(Source):
 
 class StreamSource(Source):
 
-    def _load(self, uri: str=None, *args, **kwargs) -> Source:
+    def _load(self, uri: str = None, *args, **kwargs) -> Source:
         pass
 
 
@@ -108,5 +116,5 @@ class SourceFactory:
         src = SourceFactory.__find(config.get('type'))
         return src(
             uri=config.get('uri'),
-            **config.get('options', {})
+            options=config.get('options', {})
         )

@@ -77,7 +77,6 @@ class JSONEventParser(Parser):
         """
         Does the actual work...
         """
-        self.logger.info((self.source))
         self.collection.validate(list(self.source.columns))
 
         for rix, row in self.source.iterrows():
@@ -95,6 +94,7 @@ class JSONEventParser(Parser):
                 fields[column] = dict(
                     value=str(value), datatype=datatype, mandatory=mandatory
                 )
+
             yield dict(index=str(rix), fields=fields)
 
 
@@ -108,7 +108,6 @@ class DBOutputParser(Parser):
         …
     }
     """
-
     def parse(self, *args, **kwargs) -> List:
         """
         Iterates over the given source and prints the data to stdout
@@ -116,6 +115,7 @@ class DBOutputParser(Parser):
         :param kwargs:
         :return:
         """
+
         if not self.collection.validate(list(self.source.columns)):
             raise ValueError(
                 f"Number of source columns ({len(self.source.columns)}) "
@@ -126,7 +126,9 @@ class DBOutputParser(Parser):
         for column in result.columns:
             field = self.collection.field(column)
             for _, trans in sorted(field.transformations.items()):
-                result[column] = result[column].apply(lambda x: trans.transform(x))
+                result[column] = result[column].apply(
+                    lambda x: trans.transform(x)
+                )
             if field.has_alias():
                 result.rename(columns={column: field.alias}, inplace=True)
     

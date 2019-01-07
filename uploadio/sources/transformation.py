@@ -97,7 +97,6 @@ class ReplaceRuleTransformation(Transformation):
     def __init__(self, task: RuleTask, order: Optional[int]) -> None:
         validate.is_in_dict_keys('old', task.operator)
         validate.is_in_dict_keys('new', task.operator)
-        validate.is_str(task.operator['new'])
         super().__init__(TransformationType.RULE, task, order)
 
     def _transform(self, value: str = '', *args, **kwargs) -> str:
@@ -106,7 +105,7 @@ class ReplaceRuleTransformation(Transformation):
         return value.replace(old, new)
 
 
-class RegexReplaceTransformation(ReplaceRuleTransformation):
+class RegexReplaceTransformation(Transformation):
     
     def __init__(self, task: RuleTask, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)

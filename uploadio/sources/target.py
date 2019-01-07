@@ -32,7 +32,6 @@ class LoggableTarget(Target):
 
     def _output(self, *args, **kwargs) -> None:
         for elem in self.parser.parse(**kwargs):
-            print(elem)
             self.logger.info(elem)
 
 
@@ -79,3 +78,9 @@ class AvroTarget(Target):
         writer.flush()
         buf.seek(0)
         print(buf.read())
+
+
+class MessageQueueTarget(Target):
+
+    def _output(self, *args, **kwargs) -> None:
+        pass

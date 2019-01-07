@@ -3,8 +3,10 @@ from typing import Dict, List, Any, Union
 from src.p3common.common import validators as validate
 from uploadio.sources.source import Source, JSONSource, SourceFactory
 from uploadio.sources.transformation import Transformation
+import attr
 
 
+@attr.s
 class Field:
     """
     A Field element in a source.
@@ -12,68 +14,39 @@ class Field:
     In general this is a column in table or a csv file
     or attribute in a json file
     """
-
-    def __init__(self, name: str,
-                 data_type: str,
-                 default: Any,
-                 alias: str=None,
-                 transformations: Dict[str, Transformation]=None) -> None:
-        self.name = name
-        self.data_type = data_type
-        self.default = default
-        self.alias = alias if alias is not None else name
-        self.transformations = transformations if transformations is not None \
-            else Dict[str, Transformation]
+    name: str = attr.ib()
+    data_type: str = attr.ib()
+    default: Any = attr.ib()
+    alias: str = attr.ib(default=name)
+    transformations: Dict[str, Transformation] = attr.ib(
+        default=Dict[str, Transformation]
+    )
 
     def has_alias(self) -> bool:
-        return self.alias != self.name
-
-    def __repr__(self) -> str:
-        return """
-            Field(\
-                name='{}', \
-                data_type = '{}', \
-                default = '{}', \
-                alias = '{}', \
-                transformations = {}\
-            )""".format(
-            self.name,
-            self.data_type,
-            self.default,
-            self.alias,
-            self.transformations
-        )
+        return self.alias is not None \
+               and self.alias != self.name
 
 
+@attr.s
 class SourceDefinition:
     """
     THE description of a :py:class:`Source`
+    :param name: Name of a source
+    :param source_config:
+        Source connection configuration (type, path, options)
+    :param target_config:
+    if necessary a target information
+    :param version:
+    the version of the :py:class:`Catalog`
+    :param fields:
+    dict of key ``field.name`` and value of :py:class:`Field`
     """
-
-    def __init__(self,
-                 name: str,
-                 source_config: Dict,
-                 target_config: Dict,
-                 parser_config: Dict,
-                 version: str,
-                 fields: Dict[str, Field]) -> None:
-        """
-        :param name: Name of a source
-        :param source:
-            Source connection configuration (type, path, options)
-        :param target:
-            if necessary a target information
-        :param version:
-            the version of the :py:class:`Catalog`
-        :param fields:
-             dict of key ``field.name`` and value of :py:class:`Field`
-        """
-        self.name = name
-        self.source_config = source_config
-        self.target_config = target_config
-        self.parser_config = parser_config
-        self.version = version
-        self.fields = fields
+    name: str = attr.ib()
+    source_config: Dict[str, Any] = attr.ib()
+    target_config: Dict[str, Any] = attr.ib()
+    parser_config: Dict[str, Any] = attr.ib()
+    version: str = attr.ib()
+    fields: Dict[str, Field] = attr.ib()
 
     def validate(self, src_fields: List) -> bool:
         """Simple approach...
@@ -121,10 +94,3 @@ class SourceDefinition:
     @property
     def columns(self) -> List[str]:
         return [field.alias for field in self.fields.values()]
-
-    def __repr__(self) -> str:
-        return "SourceDefinition(name='{}', source_config={}, " \
-               "target_config={}, parser_config={}, version='{}', " \
-                "fields={})".format(self.name, self.source_config,
-                                    self.target_config, self.parser_config,
-                                    self.version, self.fields)
