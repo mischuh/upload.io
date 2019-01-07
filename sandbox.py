@@ -72,7 +72,6 @@ def kontoauszug():
     print(file("sandbox/catalog_auszug.json"))
     catalog = catalog_provider(json_source(
         file("sandbox/catalog_auszug.json")))
-    print(catalog)
     collection = catalog.load('kontoauszug')
     source = collection.source.load()
     parser = ParserFactory.load(collection.parser)
@@ -81,7 +80,7 @@ def kontoauszug():
         collection=collection,
         options=collection.parser_config.get('options', {})
     )
-    # # LoggableTarget(config=collection.target_config, parser=p).output()
+    LoggableTarget(config=collection.target_config, parser=p).output()
     create_table(collection)
     DatabaseTarget(config=collection.target_config, parser=p).output()
     data = select_table(collection)
@@ -89,27 +88,18 @@ def kontoauszug():
 
 
 def customer():
-    catalog = catalog_provider(json_source(file("sandbox/catalog1.json")))
+    catalog = catalog_provider(json_source(file("sandbox/catalog_customer.json")))
     collection = catalog.load('customer')
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
     p = parser(source=csv.data, collection=collection)
-
-    # p = parser(source=csv.data, collection=customer)
-    # data = p.parse(namespace=catalog.namespace, version=catalog.version,
-    #                source='customer')
-    # schema = json_source(file(collection.schema)).data
-    # create_table(collection)
-    # DatabaseTarget(config=collection.target_config, parser=p).output()
-    # data = select_table(collection)
-    # print(data.head())
+    #LoggableTarget(config=collection.target_config, parser=p).output()
     target = AvroTarget(
         config=collection.target_config, parser=p, schema=collection.schema
     )
     target.output(namespace=catalog.namespace,
                   version=catalog.version,
                   source='customer')
-    # read_avro(data)
 
 
 def http():
@@ -122,8 +112,6 @@ def http():
         collection=collection,
         options=collection.parser_config.get('options', {})
     )
-    # target = LoggableTarget(config=collection.target_config, parser=p)
-    # target.output()
     create_table(collection)
     DatabaseTarget(config=collection.target_config, parser=p).output()
     data = select_table(collection)
@@ -141,13 +129,11 @@ def quotes():
         collection=collection,
         options=collection.parser_config.get('options', {})
     )
-    # target = LoggableTarget(config={}, parser=p)
-    # target.output()
     create_table(collection)
     DatabaseTarget(config=collection.target_config, parser=p).output()
-    # data = select_table(collection)
-    # print(data.head())
+    data = select_table(collection)
+    print(data.head())
 
 
 if __name__ == '__main__':
-    kontoauszug()
+    customer()

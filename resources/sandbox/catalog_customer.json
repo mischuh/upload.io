@@ -5,7 +5,7 @@
         "customer": {
             "source": {
                 "type": "csv",
-                "uri": "./test/resources/test_data.csv",
+                "uri": "./resources/sandbox/customer_data.csv",
                 "options": {
                     "encoding": "utf-8",
                     "delimiter": ","
@@ -17,7 +17,7 @@
             "target": {
                 "connection": {
                     "uri": "./tmp/test.avro",
-                    "schema": "./test/resources/schema_new.avsc"
+                    "schema": "./resources/sandbox/schema_new.avsc"
                 },
                 "options": {
                 }
