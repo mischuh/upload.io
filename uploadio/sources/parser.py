@@ -7,6 +7,7 @@ import pandas as pd
 from src.p3common.common import validators as validate
 from src.p3common.common.validators.utils import ValidationException
 from uploadio.sources.collection import Field, SourceDefinition
+from uploadio.sources.transformation import TransformationType
 from uploadio.utils import Loggable, make_md5
 
 
@@ -82,15 +83,19 @@ class JSONEventParser(Parser):
         for rix, row in self.source.iterrows():
             fields = dict()
             for column, value in row.iteritems():
-                try:
-                    field = self.collection.field(column)
-                    datatype = field.data_type
-                    mandatory = field.data_type is not None
-                    for _, trans in sorted(field.transformations.items()):
-                        value = trans.transform(value)
-                    column = field.alias if field.has_alias() else column
-                except ValidationException as why:
-                    print(why)
+                field = self.collection.field(column)
+                datatype = field.data_type
+                mandatory = field.data_type is not None
+                column = field.alias if field.has_alias() else column
+                for rule in field.rules().values():
+                    value = rule.transform(value)
+
+                if any(map(
+                        lambda f: f.transform(value), field.filters().values()
+                        )
+                    ):
+                    break
+
                 fields[column] = dict(
                     value=str(value), datatype=datatype, mandatory=mandatory
                 )
@@ -122,16 +127,22 @@ class DBOutputParser(Parser):
                 f"vs. target ({len(self.collection.fields)}) do not match!"
             )
 
-        result = self.source.copy()
+        result = self.source.copy()        
         for column in result.columns:
             field = self.collection.field(column)
-            for _, trans in sorted(field.transformations.items()):
+            for rule in field.rules().values():
                 result[column] = result[column].apply(
-                    lambda x: trans.transform(x)
+                    lambda x: rule.transform(x)
                 )
+
             if field.has_alias():
                 result.rename(columns={column: field.alias}, inplace=True)
-    
+
+        #
+        # TODO: Find an elegant way to apply filter
+        # test/sources/test_transformation.py::test_filter_on_df
+        #
+
         if self.options.get('options', {}).get('row_hash', False):
             result['row_hash'] = pd.Series(
                 (make_md5(str(row)) for i, row in result.iterrows())

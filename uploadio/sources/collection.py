@@ -1,9 +1,10 @@
-from typing import Dict, List, Any, Union
+from typing import Any, Dict, List, Union
+
+import attr
 
 from src.p3common.common import validators as validate
-from uploadio.sources.source import Source, JSONSource, SourceFactory
-from uploadio.sources.transformation import Transformation
-import attr
+from uploadio.sources.source import JSONSource, Source, SourceFactory
+from uploadio.sources.transformation import Transformation, TransformationType
 
 
 @attr.s
@@ -21,6 +22,18 @@ class Field:
     transformations: Dict[str, Transformation] = attr.ib(
         default=Dict[str, Transformation]
     )
+
+    def rules(self) -> Union[Dict[str, Transformation], None]:
+        return dict(filter(
+            lambda x: x[1].type == TransformationType.RULE, 
+            self.transformations.items()
+        ))
+
+    def filters(self) -> Union[Dict[str, Transformation], None]:
+        return dict(filter(
+            lambda x: x[1].type == TransformationType.FILTER, 
+            self.transformations.items()
+        ))
 
     def has_alias(self) -> bool:
         return self.alias is not None \

@@ -3,17 +3,17 @@ from typing import Any, Dict, List
 
 from src.p3common.common import validators as validate
 from uploadio.sources.collection import Field, SourceDefinition
-from uploadio.sources.transformation import (FilterTask, FilterTransformation,
-                                             RuleTask, Transformation,
+from uploadio.sources.transformation import (Task, Transformation,
                                              TransformationFactory,
                                              TransformationType)
+from uploadio.utils import Loggable
 
 
 class ConfigurationError(Exception):
     pass
 
 
-class CatalogProvider:
+class CatalogProvider(Loggable):
     """
     A Catalog holds the schema and transformation rules for a customers source.
 
@@ -130,29 +130,16 @@ class JsonCatalogProvider(CatalogProvider):
         for elem in adict.get('transformations', []):
             type = JsonCatalogProvider.__get_key_or_die(elem, 'type')
             task = JsonCatalogProvider.__get_key_or_die(elem, 'task')
-            order = elem.get('order')
-            if TransformationType(type) == TransformationType.RULE:
-                clz = TransformationFactory.load(
-                    JsonCatalogProvider.__get_key_or_die(task, 'name')
-                )
-                rt = RuleTask(
-                    name=JsonCatalogProvider.__get_key_or_die(task, 'name'),
-                    operator=JsonCatalogProvider.__get_key_or_die(
-                        task, 'operator')
-                )
-                res[order] = clz(task=rt, order=order)
-            elif TransformationType(type) == TransformationType.FILTER:
-                ft = FilterTask(
-                    attribute=JsonCatalogProvider.__get_key_or_die(
-                        task, 'attribute'),
-                    operator=JsonCatalogProvider.__get_key_or_die(
-                        task, 'operator'),
-                    expression=JsonCatalogProvider.__get_key_or_die(
-                        task, 'expression')
-                )
-                res[order] = FilterTransformation(task=ft, order=order)
-            else:
-                print("Wrong TrasformationType='{}'".format(type))
+            order = elem.get('order', 0)
+            clz = TransformationFactory.load(
+                JsonCatalogProvider.__get_key_or_die(task, 'name')
+            )
+            rt = Task(
+                name=JsonCatalogProvider.__get_key_or_die(task, 'name'),
+                operator=JsonCatalogProvider.__get_key_or_die(
+                    task, 'operator')
+            )
+            res[order] = clz(task=rt, order=order)            
 
         return res
 
