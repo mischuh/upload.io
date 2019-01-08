@@ -1,4 +1,4 @@
-from schema import Schema, Use, And, Optional, Or
+from schema import And, Optional, Or, Schema, Use
 
 schema = Schema({
         'namespace': Use(str),
@@ -15,7 +15,7 @@ schema = Schema({
                     Optional('options', default={}): dict
                 },
                 'target': {
-                    'connection': {
+                    Optional('connection', default={}): {
                         'uri': Use(str),
                         Optional('table'): Use(str),
                         Optional('schema'): Use(str),
