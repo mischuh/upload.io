@@ -18,3 +18,14 @@ do some stream processing on it)...
 
     make docker
     docker run -v DIRECTORY_TO_OBSERVER:watchdog --net=host uploadio:0.0.1
+
+## Run tests
+
+Run all tests
+
+    make test
+
+If you just want to test a specific tests, do as follows:
+
+    export PYTHONPATH=`pwd`
+    pytest -s test/sources/test_transformation.py::test_filter_on_df uploadio/
