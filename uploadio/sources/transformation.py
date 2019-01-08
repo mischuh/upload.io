@@ -11,8 +11,10 @@ class Task:
     DSL to describe a :py:class:`Task`, the key of a :py:class:`Transformation`
     """
 
-    def __init__(self, *args) -> None:
-        self.operator = None
+    def __init__(self, name: str, operator: Union[str, Dict]) -> None:
+        super().__init__()
+        self.name = name
+        self.operator = operator
 
     def operate(self, *args, **kwargs) -> Any:
         self._operate(*args, **kwargs)
@@ -21,41 +23,9 @@ class Task:
     def _operate(self, *args, **kwargs) -> Any:
         raise NotImplementedError()
 
-
-class RuleTask(Task):
-    """
-    Describes the :py:class:`Task` for a :py:class:`RuleTransformation`
-    """
-
-    def __init__(self, name: str, operator: Union[str, Dict]) -> None:
-        super().__init__()
-        self.name = name
-        self.operator = operator
-
     def __repr__(self) -> str:
-        return "RuleTask(name='{}', operator='{}')" \
+        return "Task(name='{}', operator='{}')" \
             .format(self.name, self.operator)
-
-
-class FilterTask(Task):
-    """
-    Describes the :py:class:`Task` for a :py:class:`FilterTransformation`
-
-    A :py:class:`FilterTask` can only be applied on catalog level
-    not on a :py:class:`Field`
-    """
-
-    def __init__(self, attribute: str, operator: str, expression: str) -> None:
-        super().__init__()
-        self.attribute = attribute
-        self.operator = operator
-        self.expression = expression
-
-    def __repr__(self) -> str:
-        return "FilterTask(attribute='{}', operator='{}', " \
-            "expression='{}')".format(self.attribute,
-                                      self.operator,
-                                      self.expression)
 
 
 class TransformationType(Enum):
@@ -94,7 +64,7 @@ class Transformation:
 
 class ReplaceRuleTransformation(Transformation):
 
-    def __init__(self, task: RuleTask, order: Optional[int]) -> None:
+    def __init__(self, task: Task, order: Optional[int]) -> None:
         validate.is_in_dict_keys('old', task.operator)
         validate.is_in_dict_keys('new', task.operator)
         super().__init__(TransformationType.RULE, task, order)
@@ -107,7 +77,7 @@ class ReplaceRuleTransformation(Transformation):
 
 class RegexReplaceTransformation(Transformation):
     
-    def __init__(self, task: RuleTask, order: Optional[int]) -> None:
+    def __init__(self, task: Task, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)
 
     def _transform(self, value, *args, **kwargs) -> Any:
@@ -119,7 +89,7 @@ class RegexReplaceTransformation(Transformation):
 
 class UppercaseRuleTransformation(Transformation):
 
-    def __init__(self, task: RuleTask, order: Optional[int]) -> None:
+    def __init__(self, task: Task, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)
 
     def _transform(self, value: str = '', *args, **kwargs) -> str:
@@ -129,7 +99,7 @@ class UppercaseRuleTransformation(Transformation):
 
 class LambdaRuleTransformation(Transformation):
 
-    def __init__(self, task: RuleTask, order: Optional[int]) -> None:
+    def __init__(self, task: Task, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)
 
     def _transform(self, value, *args, **kwargs) -> Any:
@@ -147,7 +117,7 @@ class LambdaRuleTransformation(Transformation):
 
 class DateFormatTransformation(Transformation):
 
-    def __init__(self, task: RuleTask, order: Optional[int]) -> None:
+    def __init__(self, task: Task, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)
 
     def _transform(self, value: str = '', *args, **kwargs) -> str:
@@ -158,34 +128,43 @@ class DateFormatTransformation(Transformation):
         return datetime.datetime.strptime(value, from_fmt).strftime(to_fmt)
 
 
-class FilterTransformation(Transformation):
-    """
-    A :py:class:`FilterTranformation` can only be applied on a catalog itself.
+class NumericComparisonFilter(Transformation):
 
-    For example, you can filter out those lines of a file that don't
-    fit a specifit criteria.
-    """
-
-    def __init__(
-            self,
-            task: FilterTask,
-            order: Optional[int],
-            *args,
-            **kwargs) -> None:
+    def __init__(self, task: Task, order: Optional[int]) -> None:
+        import numbers
+        validate.is_in_dict_keys('expression', task.operator)
+        validate.is_in_dict_keys('other', task.operator)
+        validate.is_instance_of(task.operator['other'], numbers.Number)
+        validate.is_in_list(
+            task.operator['expression'], 
+            ['lt', 'le', 'eq', 'ne', 'ge', 'gt']
+        )
         super().__init__(TransformationType.FILTER, task, order)
-        self.args = args
-        self.kwargs = kwargs
 
-    def _transform(self, row, *args, **kwargs) -> bool:
+    def _transform(self, value: Union[int, float], *args, **kwargs) -> bool:
         """
-        Wether a specific criteria fits for a givenrow
-        :param row:
-        :param args:
-        :param kwargs:
-        :return:
+        Perform “rich comparisons” between a and b. 
+        Specifically
+            * lt(a, b) is equivalent to a < b
+            * le(a, b) is equivalent to a <= b
+            * eq(a, b) is equivalent to a == b
+            * ne(a, b) is equivalent to a != b
+            * gt(a, b) is equivalent to a > b 
+            * ge(a, b) is equivalent to a >= b
+        :returns:
+            if condition not matches (e.g value (a=50) < other (b=10))
+            we want to tell the executing function that we want to
+            filter out this value/row
         """
-        print(row)
-        return True
+        import operator
+        try:
+            method = getattr(operator, self.task.operator['expression'])            
+            return not method(value, self.task.operator['other'])
+        except AttributeError:
+            raise NotImplementedError(
+                f"Class `{operator.__class__.__name__}` \
+                does not implement `{self.task.operator['expression']}`"
+            )
 
 
 class TransformationFactory:
@@ -196,7 +175,8 @@ class TransformationFactory:
         "regexreplace": RegexReplaceTransformation,
         "uppercase": UppercaseRuleTransformation,
         "lambda": LambdaRuleTransformation,
-        "date_format": DateFormatTransformation
+        "date_format": DateFormatTransformation,
+        "comparison": NumericComparisonFilter
     }
 
     @staticmethod
