@@ -19,10 +19,10 @@ pathtools==0.1.2          # via watchdog
 psycopg2-binary==2.7.5
 python-dateutil==2.6.1    # via pandas
 pytz==2017.3              # via pandas
-pyyaml==3.13              # via watchdog
-requests==2.18.4
+pyyaml==4.2b4
+requests==2.21.0
 schema==0.6.8
 six==1.11.0               # via python-dateutil
 sqlalchemy==1.2.15
-urllib3==1.22             # via requests
-watchdog==0.8.3
+urllib3==1.24.1
+watchdog==0.9.0
