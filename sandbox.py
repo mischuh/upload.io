@@ -43,7 +43,9 @@ def read_avro(data) -> None:
 def create_table(collection) -> None:        
     db = Database(DBConnection(collection.target_config['connection']))
     db.execute(
-        statement="drop table if exists {}".format(collection.name),
+        statement="drop table if exists {}".format(
+            collection.target_config['connection'].get('table', collection.name)
+        ),
         modify=True
     )
     col_types = ['"{}" {}'.format(
@@ -56,7 +58,7 @@ def create_table(collection) -> None:
     if row_hash:
         cols += ', row_hash text PRIMARY KEY'
     stmt = "create table if not exists {} ({} )".format(
-        collection.target_config['connection'].get('table', 'default'),
+        collection.target_config['connection'].get('table', collection.name),
         cols
     )
     db.execute(statement=stmt, modify=True)
@@ -64,7 +66,9 @@ def create_table(collection) -> None:
 
 def select_table(collection) -> DataFrame:    
     db = Database(DBConnection(collection.target_config['connection']))
-    stmt = "select * from {}".format(collection.name)
+    stmt = "select * from {}".format(
+        collection.target_config['connection'].get('table', collection.name)
+    )
     return db.select(stmt)
 
 
@@ -118,6 +122,23 @@ def http():
     print(data.head())
 
 
+def hospital_charges():
+    catalog = catalog_provider(json_source(file("sandbox/hospital_charges.json")))
+    collection = catalog.load('charges')
+    csv = collection.source.load()
+    parser = ParserFactory.load(collection.parser)
+    p = parser(
+        source=csv.data,
+        collection=collection,
+        options=collection.parser_config.get('options', {})
+    )
+    # LoggableTarget(config=collection.target_config, parser=p).output()
+    create_table(collection)
+    DatabaseTarget(config=collection.target_config, parser=p).output()
+    data = select_table(collection)
+    print(data.head())
+
+
 def quotes():
     catalog = catalog_provider(json_source(file(
         "sandbox/catalog_quotes.json")))
@@ -136,4 +157,4 @@ def quotes():
 
 
 if __name__ == '__main__':
-    customer()
+    hospital_charges()
