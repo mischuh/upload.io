@@ -1,0 +1,207 @@
+{
+    "namespace": "finanzguru",
+    "version": "0.1",
+    "sources": {
+        "exports": {
+            "source": {
+                "type": "xls",
+                "uri": "PATH_TO_EXPORT",
+                "options": {
+                    "header": 0
+                }
+            },
+            "parser": {
+                "name": "DBOut",
+                "options": {
+                  "row_hash": true
+                }
+            },
+            "target": {
+                "connection": {
+                  "uri": "postgresql://postgres:user@localhost:5432/postgres",
+                  "table": "finanzguru_import",
+                  "options": {
+                    "schema": "public",
+                    "ssl": "disable",
+                    "chunksize": 100
+                  }
+                }
+            },
+            "fields": [
+                {
+                    "name": "Buchungstag",
+                    "alias": "booking_date",
+                    "data_type": "date"
+                },
+                {
+                    "name": "Referenzkonto",
+                    "alias": "reference_account",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Name Referenzkonto",
+                    "alias": "reference_name",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Betrag",
+                    "alias": "amount",
+                    "data_type": "float"
+                },
+                {
+                    "name": "Kontostand",
+                    "alias": "balance",
+                    "data_type": "float"
+                },
+                {
+                    "name": "Waehrung",
+                    "alias": "currency",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Beguenstigter/Auftraggeber",
+                    "alias": "recipient",
+                    "data_type": "string"
+                },
+                {
+                    "name": "IBAN Beguenstigter/Auftraggeber",
+                    "alias": "iban_recipient",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Verwendungszweck",
+                    "alias": "purpose",
+                    "data_type": "string"
+                },
+                {
+                    "name": "E-Ref",
+                    "alias": "e_ref",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Mandatsreferenz",
+                    "alias": "referenc_of_mandate",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Glaeubiger-ID",
+                    "alias": "creditor_id",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Hauptkategorie",
+                    "alias": "analysis_main_category",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Unterkategorie",
+                    "alias": "analysis_under_category",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Vertrag",
+                    "alias": "analysis_contract",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Vertragsturnus",
+                    "alias": "analysis_contract_cycle",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Vertrags-ID",
+                    "alias": "analysis_contract_id",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Umbuchung",
+                    "alias": "analysis_transfer",
+                    "data_type": "boolean",
+                    "transformations": [
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "replace",
+                                "operator": {
+                                    "old": "ja",
+                                    "new": "true"
+                                }
+                            },
+                            "order": 1
+                        },
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "replace",
+                                "operator": {
+                                    "old": "nein",
+                                    "new": "false"
+                                }
+                            },
+                            "order": 2
+                        }
+                    ]
+                },
+                {
+                    "name": "Analyse-Vom frei verfuegbaren Einkommen ausgeschlossen",
+                    "alias": "analysis_is_excluded_from_income",
+                    "data_type": "boolean",
+                    "transformations": [
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "replace",
+                                "operator": {
+                                    "old": "ja",
+                                    "new": "true"
+                                }
+                            },
+                            "order": 1
+                        },
+                        {
+                            "type": "rule",
+                            "task": {
+                                "name": "replace",
+                                "operator": {
+                                    "old": "nein",
+                                    "new": "false"
+                                }
+                            },
+                            "order": 2
+                        }
+                    ]
+                },
+                {
+                    "name": "Analyse-Umsatzart",
+                    "alias": "analysis_revenue_type",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Betrag",
+                    "alias": "analysis_amount",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Woche",
+                    "alias": "analysis_week",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Monat",
+                    "alias": "analysis_month",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Quartal",
+                    "alias": "analysis_quarter",
+                    "data_type": "string"
+                },
+                {
+                    "name": "Analyse-Jahr",
+                    "alias": "analysis_year",
+                    "data_type": "string"
+                }
+            ]
+        }
+    }
+}

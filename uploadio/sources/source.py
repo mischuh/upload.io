@@ -6,12 +6,11 @@ from typing import Any, Dict, Type, Union
 import attr
 import pandas as pd
 
-from src.p3common.common import validators as validate
-from uploadio.utils import Loggable
+from uploadio.utils import LogMixin
 
 
 @attr.s
-class Source(Loggable):
+class Source(LogMixin):
     """ Provides data for a specific source """
     uri: str = attr.ib()
     data: Union[Dict[str, Any], pd.DataFrame] = attr.ib(init=False)
@@ -27,7 +26,6 @@ class Source(Loggable):
         :return: Source
         """
         if uri:
-            validate.str_not_empty(uri)
             self.uri = uri
         return self._load(uri, *args, **kwargs)
 
@@ -49,6 +47,14 @@ class CSVSource(Source):
     def _load(self, uri: str = None, *args, **kwargs) -> Source:
         self.options.update(**kwargs)
         self.data = pd.read_csv(filepath_or_buffer=self.uri, **self.options)
+        return self
+
+
+class XLSSource(Source):
+
+    def _load(self, uri: str = None, *args, **kwargs) -> Source:
+        self.options.update(**kwargs)
+        self.data = pd.read_excel(io=self.uri, **self.options)
         return self
 
 
@@ -75,8 +81,8 @@ class HTTPSource(Source):
               *args,
               df: bool = False,
               **kwargs) -> Source:
-        validate.is_in_dict_keys('filename', self.options)
-        validate.is_in_dict_keys('resolver', self.options)
+        # validate.is_in_dict_keys('filename', self.options)
+        # validate.is_in_dict_keys('resolver', self.options)
 
         import requests
         filename = self.options.get('filename')
@@ -101,18 +107,19 @@ class SourceFactory:
     __MAPPING: Dict[str, Type[Source]] = {
         "csv": CSVSource,
         "json": JSONSource,
-        "http": HTTPSource
+        "http": HTTPSource,
+        "xls": XLSSource
     }
 
     @staticmethod
     def __find(name: str) -> Type[Source]:
-        validate.is_in_dict_keys(name, SourceFactory.__MAPPING)
+        # validate.is_in_dict_keys(name, SourceFactory.__MAPPING)
         return SourceFactory.__MAPPING[name]
 
     @classmethod
     def load(cls, config: Dict[str, Any]) -> Source:
-        validate.is_in_dict_keys('type', config)
-        validate.is_in_dict_keys('uri', config)
+        # validate.is_in_dict_keys('type', config)
+        # validate.is_in_dict_keys('uri', config)
         src = SourceFactory.__find(config.get('type'))
         return src(
             uri=config.get('uri'),

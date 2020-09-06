@@ -40,7 +40,7 @@ def test_source_factory() -> None:
 
     config: Dict[str, str] = {
         'type': 'csv',
-        'uri': './test/resources/test_data.csv',
+        'uri': './tests/resources/test_data.csv',
         'options': {
             'encoding': 'utf-8',
             'delimiter': ','

@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from uploadio.sources.transformation import (Task, Transformation,
-                                             TransformationFactory)
+                                             TransformationFactory, TransformationType)
 
 
 @pytest.fixture(scope='function')
@@ -15,8 +15,9 @@ def data() -> pd.DataFrame:
     }
     yield pd.DataFrame(
         data,
-        index = ['Cochice', 'Pima', 'Santa Cruz', 'Maricopa', 'Yuma']
+        index=['Cochice', 'Pima', 'Santa Cruz', 'Maricopa', 'Yuma']
     )
+
 
 @pytest.fixture(scope='function')
 def replace_rule() -> Transformation:
@@ -28,7 +29,8 @@ def replace_rule() -> Transformation:
             "old": "fuc"
         }
     )
-    return clz(task=rt, order=0)
+    return clz(task=rt, order=0, type=TransformationType.RULE)
+
 
 @pytest.fixture(scope='function')
 def regexreplace_rule() -> Transformation:
@@ -40,16 +42,18 @@ def regexreplace_rule() -> Transformation:
             "new": "+",
         }
     )
-    return clz(task=rt, order=0)
+    return clz(task=rt, order=0, type=TransformationType.RULE)
+
 
 @pytest.fixture(scope='function')
 def uppercase_rule() -> Transformation:
     clz = TransformationFactory.load('uppercase')
     rt = Task(
         name='uppercase',
-        operator=None
+        operator=''
     )
-    return clz(task=rt, order=0)
+    return clz(task=rt, order=0, type=TransformationType.RULE)
+
 
 @pytest.fixture(scope='function')
 def lambda_rule() -> Transformation:
@@ -58,7 +62,7 @@ def lambda_rule() -> Transformation:
         name='lambda',
         operator="lambda x: x[::-1]"
     )
-    return clz(task=rt, order=0)
+    return clz(task=rt, order=0, type=TransformationType.RULE)
 
 
 @pytest.fixture(scope='function')
@@ -71,7 +75,7 @@ def date_format_rule() -> Transformation:
             "to": "%Y-%m-%d"
         }
     )
-    return clz(task=rt, order=0)
+    return clz(task=rt, order=0, type=TransformationType.RULE)
 
 
 @pytest.fixture(scope='function')
@@ -84,7 +88,7 @@ def num_cmp_filter() -> Transformation:
             "other": 10
         }
     )
-    return clz(task=rt, order=0)
+    return clz(task=rt, order=0, type=TransformationType.FILTER)
 
 
 def test_numeric_comparison(num_cmp_filter: Transformation):
@@ -93,7 +97,7 @@ def test_numeric_comparison(num_cmp_filter: Transformation):
     with the logic in mind that we want to filter values this the
     correct result
     """
-    assert num_cmp_filter.transform(value=50) == True
+    assert num_cmp_filter.transform(value=50)
 
 
 def test_replace_rule(replace_rule: Transformation):
@@ -101,11 +105,11 @@ def test_replace_rule(replace_rule: Transformation):
 
 
 def test_regexreplace_rule(
-    replace_rule: Transformation, 
-    regexreplace_rule: Transformation):
+        replace_rule: Transformation,
+        regexreplace_rule: Transformation):
     assert regexreplace_rule.transform(
-            value=replace_rule.transform(value='fuchs')
-        ) == '+++hs'
+        value=replace_rule.transform(value='fuchs')
+    ) == '+++hs'
 
 
 def test_uppercase_rule(uppercase_rule: Transformation):
@@ -118,6 +122,7 @@ def test_lambda_rule(lambda_rule: Transformation):
 
 def test_date_format_rule(date_format_rule: Transformation):
     assert date_format_rule.transform(value='12/24/2018') == '2018-12-24'
+
 
 def test_filter_on_df(data: pd.DataFrame, num_cmp_filter: Transformation):
     pass

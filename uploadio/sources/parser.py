@@ -1,17 +1,13 @@
 from abc import abstractmethod
-from collections import deque
 from typing import Any, Dict, List, Type
 
 import pandas as pd
 
-from src.p3common.common import validators as validate
-from src.p3common.common.validators.utils import ValidationException
-from uploadio.sources.collection import Field, SourceDefinition
-from uploadio.sources.transformation import TransformationType
-from uploadio.utils import Loggable, make_md5
+from uploadio.sources.collection import SourceDefinition
+from uploadio.utils import LogMixin, make_md5
 
 
-class Parser(Loggable):
+class Parser(LogMixin):
     """
     Abstract Parser class
 
@@ -66,7 +62,7 @@ class SimpleParser(Parser):
                     for _, trans in sorted(field.transformations.items()):
                         value = trans.transform(value)
                     column = field.alias if field.has_alias() else column
-                except ValidationException as why:
+                except Exception as why:
                     print(why)
 
                 yield dict(index=str(rix), column=column, value=value)
@@ -90,10 +86,9 @@ class JSONEventParser(Parser):
                 for rule in field.rules().values():
                     value = rule.transform(value)
 
-                if any(map(
-                        lambda f: f.transform(value), field.filters().values()
-                        )
-                    ):
+                if any(
+                        map(lambda f: f.transform(value), field.filters().values())
+                ):
                     break
 
                 fields[column] = dict(
@@ -113,6 +108,7 @@ class DBOutputParser(Parser):
         …
     }
     """
+
     def parse(self, *args, **kwargs) -> List:
         """
         Iterates over the given source and prints the data to stdout
@@ -127,7 +123,7 @@ class DBOutputParser(Parser):
                 f"vs. target ({len(self.collection.fields)}) do not match!"
             )
 
-        result = self.source.copy()        
+        result = self.source.copy()
         for column in result.columns:
             field = self.collection.field(column)
             for rule in field.rules().values():
@@ -140,7 +136,7 @@ class DBOutputParser(Parser):
 
         #
         # TODO: Find an elegant way to apply filter
-        # test/sources/test_transformation.py::test_filter_on_df
+        # tests/sources/test_transformation.py::test_filter_on_df
         #
 
         if self.options.get('options', {}).get('row_hash', False):
@@ -148,7 +144,7 @@ class DBOutputParser(Parser):
                 (make_md5(str(row)) for i, row in result.iterrows())
             )
             result.set_index('row_hash', inplace=True)
-        
+
         return result
 
 
@@ -172,5 +168,5 @@ class ParserFactory:
 
     @staticmethod
     def load(name: str) -> Type[Parser]:
-        validate.is_in_dict_keys(name, ParserFactory.__MAPPING)
+        # validate.is_in_dict_keys(name, ParserFactory.__MAPPING)
         return ParserFactory.__MAPPING[name]

@@ -1,19 +1,19 @@
 import abc
 from typing import Any, Dict, List
 
-from src.p3common.common import validators as validate
+from schema import Schema
+
 from uploadio.sources.collection import Field, SourceDefinition
 from uploadio.sources.transformation import (Task, Transformation,
-                                             TransformationFactory,
-                                             TransformationType)
-from uploadio.utils import Loggable
+                                             TransformationFactory)
+from uploadio.utils import LogMixin
 
 
 class ConfigurationError(Exception):
     pass
 
 
-class CatalogProvider(Loggable):
+class CatalogProvider(LogMixin):
     """
     A Catalog holds the schema and transformation rules for a customers source.
 
@@ -49,8 +49,8 @@ class CatalogProvider(Loggable):
         """
         raise NotImplementedError("You have to implement this.")
 
+    @staticmethod
     def parse_transformations(
-            self,
             transformations: List[Transformation]) -> None:
         for elem in transformations:
             print(elem)
@@ -60,9 +60,9 @@ class JsonCatalogProvider(CatalogProvider):
     """
     """
     def __init__(self, catalog: Dict[str, Any]) -> None:
-        validate.is_in_dict_keys('namespace', catalog)
-        validate.is_in_dict_keys('version', catalog)
-        validate.is_in_dict_keys('sources', catalog)
+        # validate.is_in_dict_keys('namespace', catalog)
+        # validate.is_in_dict_keys('version', catalog)
+        # validate.is_in_dict_keys('sources', catalog)
 
         self.namespace: str = catalog.get('namespace')
         self.version: str = catalog.get('version')
@@ -85,7 +85,7 @@ class JsonCatalogProvider(CatalogProvider):
 
     @staticmethod
     def __retrieve_fields(source: Dict) -> Dict[str, Field]:
-        validate.is_in_dict_keys('fields', source)
+        # validate.is_in_dict_keys('fields', source)
         fields = source.get('fields')
         res = dict()
         for field in fields:
@@ -128,7 +128,7 @@ class JsonCatalogProvider(CatalogProvider):
         """
         res = {}
         for elem in adict.get('transformations', []):
-            type = JsonCatalogProvider.__get_key_or_die(elem, 'type')
+            # type = JsonCatalogProvider.__get_key_or_die(elem, 'type')
             task = JsonCatalogProvider.__get_key_or_die(elem, 'task')
             order = elem.get('order', 0)
             clz = TransformationFactory.load(
@@ -139,7 +139,7 @@ class JsonCatalogProvider(CatalogProvider):
                 operator=JsonCatalogProvider.__get_key_or_die(
                     task, 'operator')
             )
-            res[order] = clz(task=rt, order=order)            
+            res[order] = clz(task=rt, order=order)
 
         return res
 

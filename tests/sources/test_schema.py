@@ -4,7 +4,7 @@ from uploadio.sources import source as src
 import pytest
 from schema import Schema
 
-from test import schema
+from tests import schema
 
 
 @pytest.yield_fixture(scope="function")

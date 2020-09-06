@@ -2,6 +2,7 @@ import inspect
 import logging
 import os
 from hashlib import md5
+from astropy.utils import classproperty
 
 
 def make_md5(s, encoding='utf-8'):
@@ -107,25 +108,23 @@ def auto_str(__repr__=False):
     return decorator
 
 
-class Loggable:
-
+class LogMixin:
     """
-    Adds a logger property to the class to provide easy access to a
-    configured logging instance to use.
+    Adds a logger property to the class to provide easy access to a configured logging instance to
+    use.
     Example:
-        >>> class NeedsLogger(Loggable):
+        >>> class NeedsLogger(LogMixin):
         ...     def do(self, message):
         ...         self.logger.info(message)
+        >>> dut = NeedsLogger()
+        >>> dut.do('mymessage')
     """
-    @property
-    def logger(self) -> logging.Logger:
+    @classproperty  # type: ignore
+    def logger(cls) -> logging.Logger:  # pylint: disable=no-self-argument
         """
         Configures and returns a logger instance for further use.
         Returns:
             (logging.Logger)
         """
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s - %(name)-15s - [%(levelname)-10s] %(message)s"
-        )
-        return logging.getLogger(os.path.basename(__file__))
+        component = "{}.{}".format(cls.__module__, cls.__name__)  # type: ignore
+        return logging.getLogger(component)

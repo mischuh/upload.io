@@ -1,9 +1,6 @@
 import abc
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
-
-from src.p3common.common import validators as validate
-from uploadio.utils import auto_str
+from typing import Any, Dict, Optional, Type, Union
 
 
 class Task:
@@ -65,8 +62,8 @@ class Transformation:
 class ReplaceRuleTransformation(Transformation):
 
     def __init__(self, task: Task, order: Optional[int]) -> None:
-        validate.is_in_dict_keys('old', task.operator)
-        validate.is_in_dict_keys('new', task.operator)
+        # validate.is_in_dict_keys('old', task.operator)
+        # validate.is_in_dict_keys('new', task.operator)
         super().__init__(TransformationType.RULE, task, order)
 
     def _transform(self, value: str = '', *args, **kwargs) -> str:
@@ -76,7 +73,7 @@ class ReplaceRuleTransformation(Transformation):
 
 
 class RegexReplaceTransformation(Transformation):
-    
+
     def __init__(self, task: Task, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)
 
@@ -93,7 +90,6 @@ class UppercaseRuleTransformation(Transformation):
         super().__init__(TransformationType.RULE, task, order)
 
     def _transform(self, value: str = '', *args, **kwargs) -> str:
-        validate.is_str(value)
         return value.upper()
 
 
@@ -114,14 +110,12 @@ class LambdaRuleTransformation(Transformation):
             and eval(self.task.operator).__name__ == "<lambda>"
 
 
-
 class DateFormatTransformation(Transformation):
 
     def __init__(self, task: Task, order: Optional[int]) -> None:
         super().__init__(TransformationType.RULE, task, order)
 
     def _transform(self, value: str = '', *args, **kwargs) -> str:
-        validate.is_str(value)
         import datetime
         from_fmt = self.task.operator['from']
         to_fmt = self.task.operator['to']
@@ -132,24 +126,24 @@ class NumericComparisonFilter(Transformation):
 
     def __init__(self, task: Task, order: Optional[int]) -> None:
         import numbers
-        validate.is_in_dict_keys('expression', task.operator)
-        validate.is_in_dict_keys('other', task.operator)
-        validate.is_instance_of(task.operator['other'], numbers.Number)
-        validate.is_in_list(
-            task.operator['expression'], 
-            ['lt', 'le', 'eq', 'ne', 'ge', 'gt']
-        )
+        # validate.is_in_dict_keys('expression', task.operator)
+        # validate.is_in_dict_keys('other', task.operator)
+        # validate.is_instance_of(task.operator['other'], numbers.Number)
+        # validate.is_in_list(
+        #     task.operator['expression'],
+        #     ['lt', 'le', 'eq', 'ne', 'ge', 'gt']
+        # )
         super().__init__(TransformationType.FILTER, task, order)
 
     def _transform(self, value: Union[int, float], *args, **kwargs) -> bool:
         """
-        Perform “rich comparisons” between a and b. 
+        Perform “rich comparisons” between a and b.
         Specifically
             * lt(a, b) is equivalent to a < b
             * le(a, b) is equivalent to a <= b
             * eq(a, b) is equivalent to a == b
             * ne(a, b) is equivalent to a != b
-            * gt(a, b) is equivalent to a > b 
+            * gt(a, b) is equivalent to a > b
             * ge(a, b) is equivalent to a >= b
         :returns:
             if condition not matches (e.g value (a=50) < other (b=10))
@@ -158,7 +152,7 @@ class NumericComparisonFilter(Transformation):
         """
         import operator
         try:
-            method = getattr(operator, self.task.operator['expression'])            
+            method = getattr(operator, self.task.operator['expression'])
             return not method(value, self.task.operator['other'])
         except AttributeError:
             raise NotImplementedError(
@@ -181,5 +175,5 @@ class TransformationFactory:
 
     @staticmethod
     def load(name: str) -> Type[Transformation]:
-        validate.is_in_dict_keys(name, TransformationFactory.__MAPPING)
+        # validate.is_in_dict_keys(name, TransformationFactory.__MAPPING)
         return TransformationFactory.__MAPPING[name]

@@ -6,16 +6,14 @@ import schema
 from pandas import DataFrame
 from sqlalchemy import create_engine
 from sqlalchemy.engine.base import Connection, Engine
-from sqlalchemy.sql import text
 
-from src.p3common.common import validators as validate
-from uploadio.utils import Loggable
+from uploadio.utils import LogMixin
 
 
 @attr.s
-class DBConnection(Loggable):
+class DBConnection(LogMixin):
     """
-    Wraps the database (sqlalchemy) connection 
+    Wraps the database (sqlalchemy) connection
 
     For further :py:class:`sqlalchemy.engine.Engine` information,
     especially for the `config['options']` part,  see here:
@@ -43,10 +41,10 @@ class DBConnection(Loggable):
     connection: Connection = attr.ib(init=False, repr=False)
     engine: Engine = attr.ib(init=False, repr=False)
 
-    def __attrs_post_init__(self) -> None:        
+    def __attrs_post_init__(self) -> None:
         self.config = self.connection_schema.validate(self.config)
         self.engine = create_engine(self.config['uri'])
-        
+
     def connect(self) -> Connection:
         self.logger.debug(
             "Establishing DB connection with {}".format(self.__repr__())
@@ -60,13 +58,13 @@ class DBConnection(Loggable):
     def close(self) -> None:
         self.logger.debug("Closing DB connection...")
         self.connection.close()
-        
+
     def is_connected(self) -> bool:
         return not self.connection.closed
 
 
 @attr.s
-class Database(Loggable):
+class Database(LogMixin):
     """
     :py:class:`DBConnection`
     """
@@ -105,7 +103,7 @@ class Database(Loggable):
         finally:
             self.connection.close()
 
-        return None  
+        return None
 
     def select(self, statement: str, **options) -> DataFrame:
         return self.execute(statement, **options)
@@ -113,7 +111,7 @@ class Database(Loggable):
     def insert(self, data: DataFrame, chunksize: int = 100) -> None:
         self.connection.connect()
         data.to_sql(
-            self.connection.config['table'], 
+            self.connection.config['table'],
             con=self.connection.engine,
             if_exists='replace',
             chunksize=chunksize,

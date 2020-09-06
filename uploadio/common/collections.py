@@ -1,16 +1,12 @@
 from collections import defaultdict
+from typing import Dict, List, Callable, Any
 
-from src.p3common.common import validators as validate
 
-
-def group_by(aggregation_func, list_to_group):
+def group_by(aggregation_func: Callable, list_to_group: List):
     """
     Applies the aggregation_func to every list
     element to determine a grouping key
     """
-    validate.is_instance_of(list_to_group, list)
-    validate.is_function(aggregation_func)
-
     d = defaultdict(list)
     for item in list_to_group:
         d[aggregation_func(item)].append(item)
@@ -18,7 +14,7 @@ def group_by(aggregation_func, list_to_group):
     return d
 
 
-def get_value_from_dictionary(d, key, default=None, sep='.'):
+def get_value_from_dictionary(d: Dict, key: str, default=None, sep='.'):
     """Assume your dictionary has the following structure:
     {
         a: {a1: {a11: "a11"}, a2: "a"},
@@ -31,9 +27,6 @@ def get_value_from_dictionary(d, key, default=None, sep='.'):
     > "a2"
     ...
     """
-    validate.is_instance_of(d, dict)
-    validate.is_str(key)
-
     path = key.split(sep)
     value = d
     for entry in path:
@@ -44,45 +37,41 @@ def get_value_from_dictionary(d, key, default=None, sep='.'):
     return value
 
 
-def merge_dicts(dict1, dict2):
+def merge_dicts(dict1: Dict, dict2: Dict):
     """
     Merges two dictionaries together.
     Duplicate keys of dict2 override keys of dict1.
     """
-    validate.is_instance_of(dict1, dict)
-    validate.is_instance_of(dict2, dict)
-
     res = dict1.copy()
     res.update(dict2)
     return res
 
 
-def safe_list_get(l, idx=0, default=None):
+def safe_list_get(lst: List[Any], idx: int = 0, default=None) -> Any:
     """
     Helper method to extract one element safely out of a list.
     When index is out of bounds no exception is thrown,
     instead the specified default value is returned.
-    :param l: The list
+    :param lst: The list
     :param idx: Index of the element
     :param default: If the element does not exists return a default value
     :return: Element of the provided list
     """
     try:
-        return l[idx]
+        return lst[idx]
     except IndexError:
         return default
 
 
-def chunk_list(l, chunk_size):
+def chunk_list(lst: List[Any], chunk_size: int) -> List[Any]:
     """Partitions the given list into <chunk_size> chunks."""
-    validate.is_instance_of(l, list)
-    if len(l) == 0:
-        return l
+    if len(lst) == 0:
+        return lst
 
-    return [l[i:i + chunk_size] for i in range(0, len(l), chunk_size)]
+    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-def make_list(item_or_items):
+def make_list(item_or_items: Any) -> List[Any]:
     """
     Makes a list out of the given items.
     Examples:

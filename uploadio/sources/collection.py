@@ -2,7 +2,6 @@ from typing import Any, Dict, List, Union
 
 import attr
 
-from src.p3common.common import validators as validate
 from uploadio.sources.source import JSONSource, Source, SourceFactory
 from uploadio.sources.transformation import Transformation, TransformationType
 
@@ -24,20 +23,13 @@ class Field:
     )
 
     def rules(self) -> Union[Dict[str, Transformation], None]:
-        return dict(filter(
-            lambda x: x[1].type == TransformationType.RULE, 
-            self.transformations.items()
-        ))
+        return dict(filter(lambda x: x[1].type == TransformationType.RULE, self.transformations.items()))
 
     def filters(self) -> Union[Dict[str, Transformation], None]:
-        return dict(filter(
-            lambda x: x[1].type == TransformationType.FILTER, 
-            self.transformations.items()
-        ))
+        return dict(filter(lambda x: x[1].type == TransformationType.FILTER, self.transformations.items()))
 
     def has_alias(self) -> bool:
-        return self.alias is not None \
-               and self.alias != self.name
+        return self.alias is not None and self.alias != self.name
 
 
 @attr.s
@@ -81,7 +73,7 @@ class SourceDefinition:
         return len(src_fields) == 0
 
     def field(self, name: str) -> Union[Field, None]:
-        validate.is_in_dict_keys(name, self.fields)
+        # validate.is_in_dict_keys(name, self.fields)
         return self.fields.get(name, None)
 
     @property
@@ -90,15 +82,15 @@ class SourceDefinition:
 
     @property
     def parser(self) -> str:
-        validate.is_in_dict_keys('name', self.parser_config)
+        # validate.is_in_dict_keys('name', self.parser_config)
         return self.parser_config.get('name')
 
     @property
     def schema(self) -> Dict[str, Any]:
-        validate.is_in_dict_keys('connection', self.target_config)
-        validate.is_in_dict_keys(
-            'schema', self.target_config.get('connection')
-        )
+        # validate.is_in_dict_keys('connection', self.target_config)
+        # validate.is_in_dict_keys(
+        #     'schema', self.target_config.get('connection')
+        # )
         src = JSONSource(
             uri=self.target_config.get('connection').get('schema')
         ).load()

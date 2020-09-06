@@ -1,7 +1,6 @@
 import io
 import os
 
-import avro
 from pandas import DataFrame
 
 from uploadio.common.db import Database, DBConnection
@@ -9,7 +8,7 @@ from uploadio.common.translator import Datatype, PostgresTranslator
 from uploadio.sources import catalog as cat
 from uploadio.sources import source as src
 from uploadio.sources.parser import ParserFactory
-from uploadio.sources.target import AvroTarget, DatabaseTarget, LoggableTarget
+from uploadio.sources.target import DatabaseTarget, LoggableTarget
 
 
 def file(file_name: str) -> str:
@@ -30,14 +29,6 @@ def csv_source(path: str, **args) -> src.Source:
 
 def catalog_provider(source: src.Source) -> cat.CatalogProvider:
     return cat.JsonCatalogProvider(source.data)
-
-
-def read_avro(data) -> None:
-    message_buf = io.BytesIO(data)
-    reader = avro.datafile.DataFileReader(message_buf, avro.io.DatumReader())
-    for thing in reader:
-        print(thing)
-    reader.close()
 
 
 def create_table(collection) -> None:        
@@ -97,10 +88,7 @@ def customer():
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
     p = parser(source=csv.data, collection=collection)
-    #LoggableTarget(config=collection.target_config, parser=p).output()
-    target = AvroTarget(
-        config=collection.target_config, parser=p, schema=collection.schema
-    )
+    target = LoggableTarget(config=collection.target_config, parser=p)
     target.output(namespace=catalog.namespace,
                   version=catalog.version,
                   source='customer')
@@ -122,9 +110,9 @@ def http():
     print(data.head())
 
 
-def hospital_charges():
-    catalog = catalog_provider(json_source(file("sandbox/hospital_charges.json")))
-    collection = catalog.load('charges')
+def finanzguru():
+    catalog = catalog_provider(json_source(file("sandbox/catalog_guru.json")))
+    collection = catalog.load('exports')
     csv = collection.source.load()
     parser = ParserFactory.load(collection.parser)
     p = parser(
@@ -157,4 +145,5 @@ def quotes():
 
 
 if __name__ == '__main__':
-    hospital_charges()
+    # http()
+    finanzguru()

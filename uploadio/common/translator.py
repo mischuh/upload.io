@@ -1,7 +1,5 @@
 from abc import abstractmethod
 
-from src.p3common.common import validators as validate
-
 
 class Dialect(object):
     """
@@ -79,14 +77,13 @@ class Datatype(object):
         return "Datatype(type='{}')".format(self.type)
 
     @staticmethod
-    def __resolve_datatype(candidate):
+    def __resolve_datatype(candidate: str):
         """
         Checks if the given candidate is a valid / supported datatype.
         Raises a ValueError if the candidate is not valid.
         :param candidate: Candidate to check.
         :return: Returns the official system representation of the candidate.
         """
-        validate.str_not_empty(candidate)
         for key, value in Datatype.__LOOKUP.items():
             if key.lower() == candidate.lower():
                 return value
@@ -150,12 +147,11 @@ class Translator(object):
     external dialect (e.g. Postgres database).
     """
 
-    def __init__(self, datatype):
+    def __init__(self, datatype: Datatype):
         """
         Constructor.
         :param datatype: The datatype the Translator should care for.
         """
-        validate.is_instance_of(datatype, Datatype)
         self.datatype = datatype
 
     @abstractmethod
@@ -393,15 +389,13 @@ class PostgresTranslator(Translator):
         """
         return PostgresTranslator.MAPPING[self.datatype.type]['default']
 
-    def cast(self, target_type):
+    def cast(self, target_type: Datatype):
         """
         Prepares a cast statement that is supported / accepted by the dialect.
         Do
             c = instance.cast().format(VALUE='my_value')
         :return:
         """
-        validate.is_instance_of(target_type, Datatype)
-
         return PostgresTranslator.MAPPING[target_type.type]['cast']
 
     @staticmethod

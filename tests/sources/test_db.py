@@ -1,6 +1,6 @@
 import pytest
 from pandas import DataFrame
-from schema import And, Optional, Or, Schema, SchemaMissingKeyError, Use
+from schema import Optional, Or, Schema, SchemaMissingKeyError, Use
 
 from uploadio.common.db import Database, DBConnection
 
@@ -16,6 +16,7 @@ def target_config():
             }
         }
     }
+
 
 @pytest.fixture(scope='function')
 def dbcon_schema():
@@ -41,7 +42,7 @@ def test_invalid_connection(target_config):
 def test_connection(target_config):
     connection = DBConnection(target_config['connection'])
     conn = connection.connect()
-    assert connection.is_connected() == True
+    assert connection.is_connected()
 
 
 @pytest.mark.integration
