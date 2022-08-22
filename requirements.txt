@@ -5,24 +5,50 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 -e git+git://github.com/mischuh/p3common.git#egg=p3common
-argh==0.26.2              # via watchdog
+    # via -r requirements.in
+argh==0.26.2
+    # via watchdog
 attrs==18.2.0
+    # via -r requirements.in
 avro-python3==1.8.2
-certifi==2018.1.18        # via requests
-chardet==3.0.4            # via requests
+    # via -r requirements.in
+certifi==2018.1.18
+    # via requests
+chardet==3.0.4
+    # via requests
 colorlog==3.1.2
+    # via -r requirements.in
 decorator==4.2.1
-idna==2.6                 # via requests
-numpy==1.15.0             # via pandas
+    # via p3common
+idna==2.6
+    # via requests
+numpy==1.22.0
+    # via pandas
 pandas==0.23.4
-pathtools==0.1.2          # via watchdog
+    # via -r requirements.in
+pathtools==0.1.2
+    # via watchdog
 psycopg2-binary==2.7.5
-python-dateutil==2.6.1    # via pandas
-pytz==2017.3              # via pandas
+    # via -r requirements.in
+python-dateutil==2.6.1
+    # via pandas
+pytz==2017.3
+    # via pandas
 pyyaml==4.2b4
+    # via
+    #   -r requirements.in
+    #   watchdog
 requests==2.21.0
+    # via -r requirements.in
 schema==0.6.8
-six==1.11.0               # via python-dateutil
+    # via -r requirements.in
+six==1.11.0
+    # via python-dateutil
 sqlalchemy==1.2.15
+    # via -r requirements.in
 urllib3==1.24.1
+    # via
+    #   -r requirements.in
+    #   requests
 watchdog==0.9.0
+    # via -r requirements.in
